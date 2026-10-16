@@ -1,0 +1,31 @@
+# .agents — project memory / rules / skills
+
+Root of the agent toolchain. The assembly point is `.opencode/opencode.json`. Hierarchy: root `AGENTS.md` (project map) → this file (toolchain) → `memorys/*` (state).
+
+## STRUCTURE
+
+```
+.agents/
+├── memorys/   # volatile facts: status (state snapshot) conventions (C conventions) decisions (D decisions) pitfalls (PIT stumbles)
+├── rules/     # standing constraints: common/ (loaded into instructions) + <lang>/ (on demand; hierarchy in rules/README.md)
+└── skills/    # 23 skill directories, each registered via SKILL.md frontmatter; .skill_id is install metadata, do not touch
+```
+
+## Loading mechanism (determines writing discipline)
+
+| Layer | When it enters context | Implication |
+|----|-------------|------|
+| `memorys/status+conventions` + `rules/common` 14 files | **fully every turn** (opencode.json instructions, 16 entries total) | every line carries a fixed token cost; stay lean, never duplicate skills content |
+| `rules/<lang>/` | on demand when file extensions match | language details may live here |
+| `skills/*/SKILL.md` | frontmatter description matches the trigger | the description is the routing lifeline: generic methodology words, no brand residue |
+| `memorys/decisions+pitfalls` | explicit read | may be long, append-only, never rewrite historical entries |
+
+## Numbering discipline
+
+- OmniLet's own C{n}/D{n}/PIT-{n} numbering starts from the template (C1/C9 are pre-seeded from the predecessor's general methodology; see the header declaration in conventions.md).
+- **Forbidden** to cite the predecessor project's numbering — the new stores carry no such entries (only archived content in `.refinfo/VisiaEngine/`, read-only).
+- The five-part form (symptom / root cause / solution / verification) and the D-entry format are embedded in each template's comments; new entries copy the skeleton verbatim.
+
+## Verification after changes
+
+Run the grep gates from the root `AGENTS.md` COMMANDS section; spot-check frontmatter (`---` pairing, single-line YAML description) with `head -6`.
