@@ -17,12 +17,15 @@ OmniLet/
 ├── CMakeLists.txt     # assembly layer: PolyOrch orchestration skeleton (D7)
 ├── cmake/             # OmniLetPolyOrch.cmake (sentinel + scaffold wiring placeholders)
 ├── PolyOrch/          # build orchestrator (git submodule gitee @5945f2a, D7; rust+node faces wire at scaffold)
+├── pixi.toml + pixi.lock      # D11 environment single-source (rust+node+pnpm, locked)
 ├── docs/              # ALL project knowledge lives here (see docs/AGENTS.md)
 │   ├── whitepaper.md          # product definition v1.0.1 (verbatim user text + errata, D2)
 │   ├── tech-whitepaper.md     # engine tech V4.0.1 (Rust dual-mode, engine matrix, flavor-split metrics, D3+D5)
 │   ├── architecture.md        # design baseline v0.2: 6 invariants; §⑦ stack table COMPLETE (D3/D5/D6)
 │   ├── test-matrix.md         # 4-tier pyramid + 3 release red-lines (D6)
-│   ├── mvp-checklist.md       # MVP acceptance: 20 entries + 7 exclusions, v1.0 (D6 errata 2)
+│   ├── mvp-checklist.md       # MVP acceptance: 21 entries (B0) + 7 exclusions, v1.0 (D6 errata 2)
+│   ├── dsl-spec.md            # DSL contract skeleton (G3): template/units/negative-list
+│   ├── devtools-spec.md       # B0 dev-shell spec skeleton (G3)
 │   └── reference/             # 11 competitor profiles + README index (snapshot 2026-10-16)
 ├── .agents/           # agent toolchain: memory/rules/skills (see .agents/AGENTS.md)
 ├── .opencode/         # opencode config + MCP bridge scripts + LSP wrappers
@@ -41,6 +44,8 @@ OmniLet/
 | Current phase / next step | `.agents/memorys/status.md` | loaded every turn |
 | Test/release gates | `docs/test-matrix.md` | 4 tiers + red-lines R1/R2/R3 (D6) |
 | MVP done-definition | `docs/mvp-checklist.md` | 20 acceptance + 7 exclusions; entry change = new decision |
+| DSL contract (template/units/negative list) | `docs/dsl-spec.md` | skeleton at scaffold; grows with compiler slices |
+| Dev shell (B0) spec | `docs/devtools-spec.md` | winit+wry+wgpu shell; automator driver contract |
 | Past decisions | `.agents/memorys/decisions.md` | append-only, D1-D7 (+addenda) |
 | Pitfalls | `.agents/memorys/pitfalls.md` + `rules/common/edit-safety.md` | append-only / live rules |
 
@@ -56,7 +61,7 @@ OmniLet/
 - NEVER cite predecessor numbering (VisiaEngine C15-C24 / D1-D25 / PIT-{n}) as if it lived in this repo's stores — archives are at `.refinfo/VisiaEngine/`, methodology citations OK.
 - NEVER edit `docs/whitepaper.md` content silently — it is verbatim user ruling (D2); propose changes as decisions first.
 - NEVER start implementing before D5: no repo scaffold, no crate/package creation, no toolchain installs.
-- `kraken-repo/` is a research clone (gitignored, evidence for `docs/reference/kraken.md`) — do not import, build, or treat as project code.
+- `.refinfo/` research clones (e.g. `.refinfo/kraken-repo/`, evidence for `docs/reference/kraken.md`) are read-only reference material — do not import, build, or treat as project code.
 
 ## COMMANDS
 

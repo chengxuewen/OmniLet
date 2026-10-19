@@ -20,13 +20,13 @@
 | 0 project definition (whitepaper + architecture baseline) | done (D2) |
 | 1 engine stack decision (Rust dual-mode) | done (D3) |
 | 1b compile-side + console + test-matrix decisions | done (D5 + D6) |
-| 2 repo scaffold (cargo workspace + crate map per architecture.md) | pending |
+| 2 repo scaffold | done (D10/D11; scaffold-monorepo plan executed) |
 
 ## Next steps
 
-1. Scaffold monorepo per D5 layout (crates/ + compiler/ + runtime/ + packages/ + console/) — wire rust/node faces into the standing PolyOrch assembly (D7), each born into the build graph; SAME COMMIT must add toolchain pins (rust-toolchain.toml + package.json engines/packageManager — doc-audit G2 obligation, version numbers decided by scaffold-time reality, not before)
-2. First slice per BS-MVP definition (see decisions D5 series): compiler skeleton (table-driven + Babel kernel v1) OR container SDK core (wry standard) — order TBD at planning
-3. Test-matrix T1 layer lands with scaffold (docs/test-matrix.md)
+1. First implementation slice (order per planning): compiler kernel skeleton (table-driven + Babel kernel v1; DSL syntax + codegen mode already ruled in D10) OR container SDK core (wry standard mode consuming the frozen Renderer trait)
+2. Renderer interface consumers: wry standard slice first (design check for the frozen trait, extension slots expected to gain methods)
+3. T2 integration gates as surfaces land (engine-consistency harness, schema golden tests)
 
 ## Open items (doc-audit 2026-10-16 register — each with its trigger)
 

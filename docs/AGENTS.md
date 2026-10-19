@@ -27,5 +27,5 @@ OmniLet's single source of product/engineering truth; the only project content u
 
 ## NOTES
 
-- Profiling evidence clones (e.g. `kraken-repo/` at repo root) are gitignored; the profile files are the citable surface, the clones are disposable.
+- Profiling evidence clones live in `.refinfo/` (e.g. `.refinfo/kraken-repo/`); the profile files are the citable surface, the clones are disposable.
 - Tech-stack rows in architecture.md §⑦ flip ⬜→✅ only via decisions.md entries (next: D5).

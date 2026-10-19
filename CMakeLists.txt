@@ -11,15 +11,11 @@ project(OmniLet VERSION 0.1.0 LANGUAGES CXX)  # PolyOrch PlatformSupport needs C
 # same commit as the predecessor archive; user-adjudicated 2026-10-16, D7).
 include(cmake/OmniLetPolyOrch.cmake)
 omnilet_ensure_polyorch()          # sentinel reuse/self-embed (first-wins, predecessor D39 form)
+omnilet_ensure_polyorch_rust()     # D11: pixi-routed rust face (pixi.toml single source)
 
-# ---- SDK resolution / toolchains ---------------------------------------
-# Scaffold-time wiring (D7 adjudication 2: infra now, wiring at scaffold):
-#   omnilet_ensure_polyorch_rust()   # rust face: cargo workspace (crates/)
-#   polyorch_node_setup()            # node face: pnpm workspace (compiler/runtime/packages/console)
+# ---- lanes --------------------------------------------------------------
+# Rust lanes register through polyorch_rust_build (cargo owns them; no add_subdirectory).
+# JS lanes build through the node face / pnpm (added when compiler packages land).
 #
-# ---- add_subdirectory lanes (scaffold creates these; each is born into the graph) ----
-#   add_subdirectory(crates)         # Rust: engine/container (D3)
-#   add_subdirectory(compiler)       # TS: table-driven compiler (D5), if it carries CMake-visible targets
-#
-# ---- install hooks (scaffold) ----
+# ---- install hooks (later slice) ----
 #   include(cmake/OmniLetInstall.cmake)

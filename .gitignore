@@ -73,8 +73,8 @@ nodejs
 stash
 
 # nodejs environments
-# MCP bridge auto-install artifacts dropped at the repo root (npm state, not project files)
-/package.json
+# MCP bridge auto-install artifacts (npm state) — root package.json itself was promoted to
+# the monorepo manifest at scaffold (D5-4/G2); bridge artifacts are covered by node_modules/.npm-cache
 /package-lock.json
 node_modules
 .npm-cache
@@ -92,7 +92,8 @@ node_modules
 /pixi.sh
 /pixi.bat
 /pixi.ps1
-.sisyphus
+.sisyphus/*
+!.sisyphus/plans/
 .omo/*
 !.omo/omo.jsonc
 
@@ -105,5 +106,3 @@ cmake-build*/
 build/
 target/
 
-# Research source clones (lane-engines reference evidence, same nature as .refinfo/)
-kraken-repo/

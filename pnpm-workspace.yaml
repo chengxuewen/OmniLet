@@ -1,0 +1,7 @@
+packages:
+  - compiler
+  - runtime
+  - packages/*
+  - console
+allowBuilds:
+  esbuild: true

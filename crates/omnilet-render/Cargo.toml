@@ -1,0 +1,9 @@
+[package]
+name = "omnilet-render"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+# intentionally EMPTY — invariant ③: the contract surface carries zero backend types
+# (wry/wgpu/skia arrive with the renderer slices that IMPLEMENT this trait, never here)

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://omnilet.dev/schemas/manifest-v1.json",
+  "title": "OmniLet offline-package manifest v1",
+  "description": "Machine contract for the hot-update package manifest. Source of truth: decisions.md D8-1. Consumers: @omnilet/compiler (writer), container SDK verifier (reader).",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "minEngineVersion",
+    "packageVersion",
+    "files",
+    "signature"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schemaVersion": {
+      "const": 1,
+      "description": "Manifest FORMAT version (D8-1). SDK rule: higher version = refuse to load (fail-closed); unknown fields within same version = ignore."
+    },
+    "minEngineVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Minimum container engine version (semver). Pre-load handshake: engine < minEngineVersion = refuse + explicit error, never crash (D8-1; Lynx engineVersion / QuickApp minPlatformVersion precedent)."
+    },
+    "packageVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "This package's semantic version (hot-update ordering + rollback target identity)."
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Directory-level diff unit (D5 add2-3): one entry per file in the package.",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "hash",
+          "size"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^[\\w][\\w.-]*(/([\\w][\\w.-]*))*$",
+            "description": "Package-relative path; segments of [word chars + optional .ext]; leading / and .. segments rejected (path-traversal guard, test-enforced)."
+          },
+          "hash": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$",
+            "description": "Per-file content hash (sha256)."
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "algorithm": {
+          "const": "ed25519",
+          "description": "Package-level single signing point (D8-2); key rotation via rollover-notice manifests (separate manifest type, same schema family)."
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9+/=]+$"
+        }
+      }
+    }
+  }
+}
