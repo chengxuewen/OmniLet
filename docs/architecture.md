@@ -138,23 +138,22 @@ Web:     iframe(形态A) / WebComponent(形态B)
 
 不变量⑤的执行点：签名校验是进入沙箱域的唯一代码入口，无旁路。
 
-## ⑦ 技术选型状态表（D3 已裁决，2026-10-16）
+## ⑦ 技术选型状态表（D3/D5/D6 已裁决，2026-10-16 — 表已完整）
 
 | 领域 | 裁决 | 依据 |
 |---|---|---|
-| 容器核心语言/工具链 | **Rust**（rustfmt/clippy 纪律随 rules/rust/ 生效） | D3 / tech-whitepaper §1.2
-| 渲染底座 | **双模式**：标准=wry(系统WebView) · HMI=自研(skia-safe/vello + wgpu) | D3 / tech-whitepaper §4-§5
-| JS 引擎 | **rquickjs 默认 / rusty_v8 可选**（逻辑层无 DOM/BOM） | D3 / tech-whitepaper §3.2
-| DSL→渲染映射 | 编译期生成 **Display List 二进制指令流**（HMI 模式，Dirty Rect 重绘） | D3 / tech-whitepaper §5.3
-| 局部 Web 能力 | **OSR 按需嵌入**：Linux=WPE(DMA-BUF) · Windows=WebView2 Composition | D3 / tech-whitepaper §5.4
-| 宿主集成 | C ABI 边界(cbindgen+不透明指针)；Qt=winId() · Flutter=PlatformView/ExternalTexture | D3 / tech-whitepaper §6
-| 容错降级 | 系统原生优先，外部浏览器兑底(Chrome --app=)；**不内置 CEF** | D3 / tech-whitepaper §7
-| Linux 分发 | 标准模式=**Flatpak** · HMI 模式=裸二进制/轻量 AppImage | D3 / tech-whitepaper §8
-| 小程序侧开发语言 | 统一 DSL/TS（面向开发者，编译到各目标） | whitepaper v1.0
-| 多端编译引擎实现 | Babel/SWC/自研 AST 管线 | ⬜ D5 待裁决
-| 管理后台栈 | Node/Go/Java + 前端框架 | ⬜ D5 待裁决
-| 构建/CI | Rust(cargo)+前端(monorepo 工具链)组合待定 | ⬜ D5 待裁决
-| 测试 | cargo test + 前端框架测试 + 真机矩阵 | ⬜ D5 待裁决
+| 容器核心语言/工具链 | **Rust**（rustfmt/clippy 纪律随 rules/rust/ 生效） | D3 / tech-whitepaper §1.2 |
+| 渲染底座 | **双模式**：标准=wry(系统WebView) · HMI=自研(skia-safe/vello + wgpu) | D3 / tech-whitepaper §4-§5 |
+| JS 引擎 | **三引擎矩阵**（D5）：iOS=JSC · Android/Linux/Win/DevTools=rusty_v8 · 嵌入式 lite flavor=rquickjs · Hermes 除名（OC 胶水桥为例外声明） | D5 addendum / tech-whitepaper §3.2 |
+| DSL→渲染映射 | 编译期生成 **Display List 二进制指令流**（HMI 模式，Dirty Rect 重绘） | D3 / tech-whitepaper §5.3 |
+| 局部 Web 能力 | **OSR 按需嵌入**：Linux=WPE(DMA-BUF) · Windows=WebView2 Composition | D3 / tech-whitepaper §5.4 |
+| 宿主集成 | C ABI 边界(cbindgen+不透明指针)；Qt=winId() · Flutter=PlatformView/ExternalTexture | D3 / tech-whitepaper §6 |
+| 容错降级 | 系统原生优先，外部浏览器兑底(Chrome --app=)；**不内置 CEF** | D3 / tech-whitepaper §7 |
+| Linux 分发 | 标准模式=**Flatpak** · HMI 模式=裸二进制/轻量 AppImage | D3 / tech-whitepaper §8 |
+| 小程序侧开发语言 | 统一 DSL/TS（面向开发者，编译到各目标） | whitepaper v1.0 |
+| 多端编译引擎实现 | **表驱动 + 内核可换代**（v1 Babel → 规则表资产 → v2 SWC），MVP 目标 = 微信/Web/自有容器 | ✅ D5 |
+| 管理后台栈 | **TS 全栈**：Node(Hono/NestJS) + React + PostgreSQL（console/ 入 monorepo；包分发走 CDN 不经过后台） | ✅ D6 |
+| 构建/CI/仓库布局 | **Monorepo**：pnpm workspace + cargo workspace 并存，路径过滤 CI | ✅ D5 |
+| 测试 | **四层金字塔 + 三红线**（docs/test-matrix.md；T4 全平台：Win/Linux/macOS/iOS/Android/Web） | ✅ D6 |
 
-> D3 裁决了**引擎/容器侧**（Rust 全家桶 + 双模式渲染），whitepaper §8 的多端编译侧（微信/支付宝/飞书/快应用产物）实现栈仍开放（D5）。
-> 剩余项按 C1 格式（优缺点/来源/影响/推荐）过一遍后写入 decisions.md。
+> 全表已裁决（D3/D5/D6，全部 user-adjudicated）。新增选型一律走 decisions.md 新条目；修订本表须引用对应决策编号。
