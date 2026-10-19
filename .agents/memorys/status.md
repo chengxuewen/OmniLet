@@ -1,6 +1,6 @@
 # OmniLet Status
 
-**Generated**: 2026-10-16 | Phase: 1 stack decided (engine side), compile-side stack open | Branch: main (zero commits)
+**Generated**: 2026-10-16 (doc-audit refresh) | Phase: 1 fully decided (D1-D8), scaffold next | Branch: master
 
 ## Overview
 
@@ -24,9 +24,15 @@
 
 ## Next steps
 
-1. Scaffold monorepo per D5 layout (crates/ + compiler/ + runtime/ + packages/ + console/) — wire rust/node faces into the standing PolyOrch assembly (D7), each born into the build graph
+1. Scaffold monorepo per D5 layout (crates/ + compiler/ + runtime/ + packages/ + console/) — wire rust/node faces into the standing PolyOrch assembly (D7), each born into the build graph; SAME COMMIT must add toolchain pins (rust-toolchain.toml + package.json engines/packageManager — doc-audit G2 obligation, version numbers decided by scaffold-time reality, not before)
 2. First slice per BS-MVP definition (see decisions D5 series): compiler skeleton (table-driven + Babel kernel v1) OR container SDK core (wry standard) — order TBD at planning
 3. Test-matrix T1 layer lands with scaffold (docs/test-matrix.md)
+
+## Open items (doc-audit 2026-10-16 register — each with its trigger)
+
+**At scaffold**: G3 DSL/API-surface doc skeleton (docs/dsl-spec.md; rule tables must not become the de-facto spec) · toolchain pins (G2, registered in Next steps) · S3 §4.2 sample-code path-traversal annotation (one-off, with next tech-whitepaper touch)
+**At phase-2 modules**: R2 sandbox resource quotas (minimal form with sandbox module) · R3 multi-version retention advanced option · O1 console ops spec (backup/DR/alerting/console authn) · U1 SDK-self upgrade strategy (highest-risk upgrade path of a hot-update product) · G4 SDK health/liveness watchdog
+**Standing observations**: finclip-style compliance materials (等保/ISO — at commercial-edition start) · 3-flavor CI macOS-runner cost · mvp-checklist exclusion-list review triggers (any exclusion re-proposal = new decision)
 
 ## Archive note
 

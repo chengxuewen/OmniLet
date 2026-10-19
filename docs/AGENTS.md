@@ -6,8 +6,8 @@ OmniLet's single source of product/engineering truth; the only project content u
 
 | Task | Location | Notes |
 |------|----------|-------|
-| Product definition / scope | `whitepaper.md` | v1.0, verbatim user ruling (D2) — edit only via decision |
-| Engine/container tech | `tech-whitepaper.md` | V4.0, user ruling (D3): Rust dual-mode render, rquickjs/rusty_v8 |
+| Product definition / scope | `whitepaper.md` | v1.0.1, verbatim user ruling + errata (D2) — edit only via decision |
+| Engine/container tech | `tech-whitepaper.md` | V4.0.1, user ruling (D3+D5): Rust dual-mode render, three-engine matrix, flavor-split metrics |
 | Architecture invariants (6) | `architecture.md` header | outrank all diagrams; ③ carries reference-library evidence |
 | Open tech selections | `architecture.md` §⑦ | 4 rows pending → D5 |
 | Competitor profiles | `reference/README.md` index → 11 files | 4 groups: hosts / benchmark / frameworks / engines |

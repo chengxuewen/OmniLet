@@ -29,4 +29,4 @@ Common mistake: forgetting to `git add <lockfile>` after manifest changes — ca
 
 ## No Stack-Specific Discipline Yet
 
-Environment-management / toolchain conventions will be written here at the stack decision (D2). Nothing is assumed before that.
+Environment-management / toolchain conventions will be written here at the stack decisions (D3 engine toolchain / D5 compile-side; toolchain pins land at scaffold — doc-audit G2). Nothing is assumed before that.

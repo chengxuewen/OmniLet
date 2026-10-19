@@ -37,7 +37,7 @@
 - [ ] F2 T2 集成层跑通：三 flavor 引擎一致性（R1）+ 权限三层矩阵 + Worker 用例
 - [ ] F3 三发版红线机制立起：R1/R2/R3 任一红 = 不可发版（R3 白名单流程文档化）；每条红线交付时附红/绿双向验证记录（坏样本必红 + 好样本应绿，testing 纪律：gate 能咬人）
 
-### G. 性能指标（tech-whitepaper §9 lite 列，D5 add1-② 分列制）
+### G. 性能指标（tech-whitepaper §9 lite 列【已落地】/ standard 列【待 G2 实测】，D5 add1-② 分列制）
 - [ ] G1 lite flavor（rquickjs）：冷启动 < 50ms、内存基线 < 15MB、体积增量 < 5MB（实测达标志）
 - [ ] G2 standard flavor 指标数字实测锁定并回填 tech-whitepaper §9 standard 列
 

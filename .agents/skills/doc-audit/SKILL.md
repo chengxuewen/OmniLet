@@ -57,7 +57,7 @@ Verify the cross-consistency of architecture.md ↔ modules/ ↔ README ↔ AGEN
 Verify self-consistency among the rules, skills, and memory under .agents/.
 
 **Core questions**:
-- conventions.md numbering contiguous? C{n} cross-references valid?
+- conventions.md numbering contiguous? C{n} cross-references valid (only existing C-slots: C1/C9)?
 - decisions.md numbering contiguous? D{n} ordering correct?
 - pitfalls.md numbering contiguous? PIT-{n} cross-references complete?
 - Does the skill directory table (AGENTS.md) match the actual skill list?

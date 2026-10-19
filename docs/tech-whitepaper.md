@@ -1,6 +1,6 @@
 # 跨平台轻量级小程序引擎与 HMI 渲染架构技术白皮书
 
-**文档版本**：V4.0 (全面统一版)
+**文档版本**：V4.0.1（勘误：§3.2/§9/§10 引擎矩阵与指标分列对齐，2026-10-16 doc-audit）
 **适用对象**：系统架构师、客户端研发工程师、HMI/车载系统开发者、技术决策者
 **核心技术栈**：Rust, WRY, Skia/WGPU, QuickJS/V8, WebView2/WebKitGTK/WPE
 
@@ -85,7 +85,7 @@ Rust 具备**内存安全（无 GC 停顿）**、**无畏并发**以及**极佳�
 ```
 
 ### 3.2 核心模块解析
-1.  **逻辑层 (Logic Layer)**：推荐使用 `rquickjs`（极度轻量，启动毫秒级）或 `rusty_v8`。此环境中没有 `window` 和 `document` 对象，只有纯净的 ECMAScript 环境和 SDK 注入的全局 API。
+1.  **逻辑层 (Logic Layer)**：JS 引擎按 **flavor 矩阵**选型（D5 裁决，详见 architecture.md §⑦）：iOS=JavaScriptCore（系统自带，OC 胶水桥绑定）；Android/Linux/Windows=V8（rusty_v8，确定性+JIT 上限）；嵌入式/轻量 lite flavor=rquickjs。Hermes 已除名（React Native 生态专属）。此环境中没有 `window` 和 `document` 对象，只有纯净的 ECMAScript 环境和 SDK 注入的全局 API。
 2.  **通信桥接层 (IPC Bridge)**：当逻辑层需要更新 UI 时（如 `setData()`），通过 IPC 将差异化的 JSON/Patch 数据发送给渲染层；当需要调用底层能力时，发送给 Rust 宿主执行原生操作后回调。
 
 ---
@@ -218,13 +218,15 @@ Flutter 拥有自绘引擎（Skia/Impeller），不使用系统原生控件，�
 
 相较于传统 Electron 或重型 CEF 方案，基于 Rust 的架构可实现以下性能突破：
 
-| 指标 | 标准模式 (WRY) | HMI 极致模式 (自研引擎) | Electron / CEF |
+> **指标按 flavor 分列**（D5 add1-② 裁决 + doc-audit 2026-10-16 修正）：lite = rquickjs 嵌入式/HMI flavor；standard = V8/JSC 桌面移动默认 flavor（含 HMI wry 模式）。standard 列数字待实测锁定（mvp-checklist G2）；lite 列数字为已裁决承诺。
+
+| 指标 | lite (rquickjs) | standard (V8/JSC) | Electron / CEF |
 | :--- | :--- | :--- | :--- |
-| **冷启动时间** | < 300ms | **< 50ms** | > 1500ms |
-| **内存基线占用** | < 50MB | **< 15MB** | > 150MB |
-| **SDK 二进制体积** | < 10MB | < 15MB | > 150MB |
-| **IPC 延迟** | < 2ms | **< 0.5ms (共享内存)** | > 5ms |
-| **帧率稳定性** | 依赖系统 WebView | **绝对稳定 60/120FPS** | 易受 GC 影响掉帧 |
+| **冷启动时间** | **< 50ms** | 待实测锁定（V8 snapshot 优化后） | > 1500ms |
+| **内存基线占用** | **< 15MB** | 待实测锁定 | > 150MB |
+| **SDK 二进制体积** | **< 5MB** | 待实测锁定（V8 引擎 10-40MB 增量为公开事实） | > 150MB |
+| **IPC 延迟** | **< 0.5ms (共享内存)** | < 2ms | > 5ms |
+| **帧率稳定性** | **绝对稳定 60/120FPS** | 依赖系统 WebView / 自绘模式 | 易受 GC 影响掉帧 |
 
 ---
 
@@ -236,7 +238,7 @@ Flutter 拥有自绘引擎（Skia/Impeller），不使用系统原生控件，�
 需求评估：你的核心场景是什么？
  ├── 常规桌面/移动 App，追求小体积与跨端动态化
  │    ├── 渲染底座 ──► 选择【标准模式】(wry + 系统 WebView)
- │    ├── JS 引擎 ──► rquickjs 或 rusty_v8
+ │    ├── JS 引擎 ──► flavor 矩阵（标准=V8/JSC · 嵌入式 lite=rquickjs，D5）
  │    ├── 宿主集成 ──► Qt(winId) / Flutter(Platform View)
  │    ├── 容错降级 ──► Win: Bootstrapper, 降级: Chrome --app=
  │    └── Linux 分发 ──► Flatpak (解决 WebKitGTK 4.1 缺失)

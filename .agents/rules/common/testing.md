@@ -65,6 +65,6 @@ test('falls back to substring search when Redis is unavailable', () => {})
 ## Runnable Check
 
 ```bash
-# Placeholder until the test stack is chosen (see status.md); replace with the real commands at stack decision.
-echo 'no test runner configured yet'
+# Tier structure + red-lines defined in docs/test-matrix.md (D6). Runner commands land with T1 CI at scaffold (see mvp-checklist F1).
+echo 'test matrix defined (docs/test-matrix.md); runner wiring lands at scaffold — see mvp-checklist F1'
 ```
