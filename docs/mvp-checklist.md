@@ -13,7 +13,8 @@
 - [ ] A3 同一样例 → **自有容器包**在容器 SDK 内可运行
 - [ ] A4 编译器 = 表驱动架构（规则表独立于内核），Babel v1 内核跑通三目标管线
 
-### B. 容器 SDK（D5 add1/2 + D3）
+### B. 容器 SDK（D5 add1/2 + D3 + D9）
+- [ ] B0 桌面开发壳：标准模式宿主兼任（加载未打包目录 + watch 热重载 + CDP 调试端口）——容器目标开发迭代秒级 + T2/T3 容器层自动化测试驱动器（D9 裁决 1）
 - [ ] B1 SDK 嵌入 **iOS + Android** 演示 App，轻应用可打开/前后台切换/销毁
 - [ ] B2 JS 引擎矩阵生效：iOS=JSC（OC 胶水桥）/ Android=V8；lite flavor（rquickjs）可在嵌入式 target 演示
 - [ ] B3 双通道就位：标准模式 StructuredChannel / HMI 模式 SharedRingBuffer，上层 setData API 统一
