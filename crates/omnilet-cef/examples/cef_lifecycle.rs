@@ -8,7 +8,7 @@
 
 use omnilet_cef::CefBackend;
 use omnilet_webview::{
-    Bounds, NavigationPolicy, RequestFilter, WebviewParent, WebViewBackend,
+    Bounds, NavigationPolicy, WebviewParent, WebViewBackend,
 };
 use std::sync::Arc;
 use std::time::{Duration, Instant};
