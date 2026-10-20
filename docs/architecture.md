@@ -160,4 +160,12 @@ Web:     iframe(形态A) / WebComponent(形态B)
 
 > 全表已裁决（D3/D5/D6/D12-D14，全部 user-adjudicated）。新增选型一律走 decisions.md 新条目；修订本表须引用对应决策编号。
 
-**HMI 自绘模式平台矩阵（D14）**：Linux（车机/工控，WPE OSR）✅ · Windows（工控大屏，WebView2 Composition）✅ · macOS（web-view 走 CefBackend 触发制）· **iOS=范围外**（iOS 承诺标准模式全能力；苹果 WebKit 独占政策+无离屏 API 使 iOS×HMI×web-view 结构性无解，产品矩阵不承诺）。web-view 细节见 dsl-spec §8。
+**平台支持矩阵（D14+D16 合并版）**：
+
+| | 标准模式（系统网页渲染） | HMI 自绘模式（web-view 内嵌列见 dsl-spec §8） |
+|---|---|---|
+| Windows | WebView2（WryBackend）✅ | WebView2 Composition ✅ |
+| macOS/iOS | WKWebView（WryBackend）✅ | macOS=触发 CefBackend · **iOS 范围外**（苹果政策结构性无解） |
+| **Linux** | **终态=CEF（D16 定局，绕开 WebKitGTK 系统性问题）；过渡态=MVP 仅 22.04+ Wry，CefBackend 切片落地即切换、wry-Linux 支退役** | WPE OSR ✅（§5.4；Lite flavor 嵌入式主战场） |
+
+Flatpak 定位（tech-whitepaper §8 v4.0.2 勘误）：可选打包形式，非支持层级——SDK 嵌入场景下"要求宿主改分发形态"前提不成立（D16）。

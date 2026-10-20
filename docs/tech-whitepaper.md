@@ -210,7 +210,9 @@ Flutter 拥有自绘引擎（Skia/Impeller），不使用系统原生控件，�
 | **Flatpak** | 沙盒化运行，依赖 GNOME Platform Runtime | 🟢 **完美** (Runtime 自带完整配置好的 WebKitGTK 4.1，无视宿主 glibc 版本) | ✅ **强烈推荐** |
 | **原生包 (.deb/.rpm)** | 声明依赖，由 apt/yum 自动拉取 | 🟢 良好 (符合 Linux 规范) | ✅ 推荐配合 CI 使用 |
 
-**架构决策**：对于标准模式（依赖 WebKitGTK），**Flatpak 是唯一优雅的工程解法**。它将维护庞大 WebKit 依赖树的责任转移给了 GNOME 社区，使得 SDK 本身的包体积保持在数兆字节级别。而对于 HMI 模式（自研引擎），由于脱离了 WebKitGTK 依赖，可以直接分发裸二进制或轻量级 AppImage。
+**架构决策**：对于标准模式（依赖 WebKitGTK），**Flatpak 是唯一优雅的工程解法**。
+
+> ⚠️ **v4.0.2 勘误（D16，2026-10-19）**：此判断适用于独立桌面 App 发行场景；对 OmniLet 的**嵌入式 SDK** 场景前提不成立（宿主不会为子控件改分发形态）。Linux 标准模式终态改为 **CEF 默认内核**（绕开 WebKitGTK 系统性碎片化），Flatpak 降级为可选打包形式。下文 HMI 模式结论不变。它将维护庞大 WebKit 依赖树的责任转移给了 GNOME 社区，使得 SDK 本身的包体积保持在数兆字节级别。而对于 HMI 模式（自研引擎），由于脱离了 WebKitGTK 依赖，可以直接分发裸二进制或轻量级 AppImage。
 
 ---
 
