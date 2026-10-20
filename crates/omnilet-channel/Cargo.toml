@@ -1,0 +1,18 @@
+[package]
+name = "omnilet-channel"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# D15-2: the ordered two-way line between logic layer and view layer.
+# Pure contract + reference in-memory implementation (mock/golden harness
+# for invariant-3 semantic equality). Real envelopes (WebView postMessage
+# JSON / HMI shared-memory binary) implement Downstream/Upstream later.
+[dependencies]
+omnilet-patch = { path = "../omnilet-patch" }
+
+[dev-dependencies]
+serde_json = "1"
+
+[lints]
+workspace = true

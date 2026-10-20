@@ -8,11 +8,12 @@ license.workspace = true
 name = "omnilet-container"
 path = "src/main.rs"
 
+# wry comes back WITH renderer.rs (needs webkit2gtk-4.1 build env; D16
+# transitional: this host is 20.04 — that env arrives with the Docker/22.04 lane)
 [dependencies]
 omnilet-render = { path = "../omnilet-render" }
 omnilet-protocol = { path = "../omnilet-protocol" }
 omnilet-jsengine = { path = "../omnilet-jsengine" }
-wry = "0.57"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"

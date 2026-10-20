@@ -299,6 +299,8 @@ the toolchain cousin of #26's "assert before write").
 `grep -c "<new-section feature string>" <target file>` == 1.
 **Blocking condition**: embedding a heredoc inside a heredoc with the same delimiter in one command; or using a format string in a gate assertion without self-proving it first.
 
+**Variant (2026-10-19, second hit of this family)**: heredoc OPEN/CLOSE tag mismatch (`<<'D17EOF'` closed with a bare `EOF`) — the unclosed heredoc silently swallowed every following command (file writes included) into one file's content; recovery via `git checkout` of the poisoned file (committed state verified first) + redo through write/edit tools. Standing rule: **file content goes through write/edit; bash chains carry commands only**; a big heredoc must be the LAST statement of its command (nothing chained after it). Self-check before running a multi-heredoc chain: every open tag needs its identical close tag on its own line.
+
 ### 28. Re-anchor every check that greps a translatable literal, in the same commit as the translation (2026-10-12 E2 round)
 
 **Rule**: a gate/check whose grep pattern embeds prose from a file owned by a translation/

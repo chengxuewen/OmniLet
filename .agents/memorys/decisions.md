@@ -259,3 +259,15 @@
 - **Size accounting**: Linux standard-mode consumers = 工控一体机/开发机/大屏 (disk-rich); consumer Linux is not the market. Embedded/车机 run HMI mode (rquickjs lite + self-render, MBs) — untouched by CEF weight. Narrative platform-split: "Win/mac zero-increment; Linux bundles web kernel (~100MB级)" — the Spotify-class standard answer.
 - **Migration path (anti-deadlock)**: transitional = MVP Linux standard mode ships WryBackend-only (22.04+ free win); CefBackend lands as its own slice (weeks-month, cef-rs foundation ruled in D12-add3); at landing, Linux FLIPS to CefBackend default and the wry-Linux branch RETIRES (transition has a stated end; no permanent dual-path matrix on one platform — E rejected for exactly that tax).
 - **Consequences for earlier decisions**: D12 draft-bundle CLOSED (additions 1-4 stand: Chrome --app removal, cef-rs foundation, WebViewBackend contract, responder model). CefBackend promotion: from "D12-triggered maybe" to "Linux-required committed slice" (project scheduled post-MVP-core). minEngineVersion/manifest contracts unchanged. D14 matrix gains standard-mode column (below). tech-whitepaper §8 "Flatpak 唯一优雅解" annotated v4.0.2 (valid for standalone apps; superseded for SDK embedding by D16).
+
+
+## D17: Capability naming = permission unit (2026-10-19, user ruling A)
+
+- Ruling: register_bridge names MUST be `omnilet.<capability>.<method>`; the capability segment IS the permission unit — declaration (manifest), grant (3-layer model), audit log, and API prefix share ONE word, zero mapping tables. Non-conforming names rejected at registration.
+- Evidence: five ecosystems converge independently on name-as-permission (Chrome extensions `chrome.<api>` + manifest permissions one-word — most isomorphic: third-party code in host + review + store; Android `android.permission.X`; Web `navigator.geolocation` object=permission; QuickApp `<feature name>` already adopted D5 add5; HarmonyOS `ohos.permission.X`). WeChat's 2-segment `wx.xxx` is the DISCONFIRMING case (name/permission split → dual-table drift is its known audit-rejection pain). Electron free-channels rejected as scenario-incomparable (first-party apps, no third-party governance need).
+- Word shape `omnilet.storage.set()` mirrors `chrome.storage.set()` — zero migration friction for extension-ecosystem developers.
+- Deferred by design (open, own card someday): business-facing wx.* compatibility SURFACE (migration sweetener vs ecosystem binding — Taro/uni-app precedent), product-compat strategy not naming governance.
+
+### D17 tooling incident note (self-recorded, edit-safety #27 family)
+
+- First append attempt died on a mismatched heredoc terminator (open `D17EOF` / close `EOF`): the unclosed heredoc swallowed ALL following commands (file writes included) into decisions.md. Recovery: git checkout of the single file (last commit state verified first), redo via edit/write tools. Standing rule reinforced: multi-file command sequences MUST NOT chain big heredocs; file content goes through write/edit, bash runs commands only.

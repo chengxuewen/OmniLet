@@ -1,0 +1,15 @@
+[package]
+name = "omnilet-patch"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# D15-1: key-path logical patch format (JSON envelope first; binary HMI
+# envelope deferred as a channel-side transport, semantics identical).
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+
+[lints]
+workspace = true

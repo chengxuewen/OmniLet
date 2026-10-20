@@ -54,3 +54,16 @@
 - Invariant ④ discipline: the container NEVER builds its own hidden event loop; the host (main.rs) owns the loop and pumps the container
 - Frozen-trait discipline: adding impl methods is allowed (extension slots); CHANGING the 3 frozen ops requires a user ruling (they are ABI-level)
 - PolyOrch: crates are wired via `polyorch_rust_build`, not add_subdirectory (scaffold task-3 finding)
+
+## Status checkpoint (2026-10-19)
+
+- [x] protocol.rs → promoted to own crate `omnilet-protocol` (GTK-free pure logic, 4/4 green incl. traversal attacks; fixture race fixed per-test dirs)
+- [x] jsengine boot + bridge responder (3/3 green; MSRV pin rquickjs=0.11; bindgen dropped)
+- [x] NEW (D15): `omnilet-patch` contract crate (key-path + JSON envelope + latest-wins merge, 3/3 green)
+- [x] NEW (D15): `omnilet-channel` contract crate (seq downlink / view_seq uplink / coalescing buffer, 3/3 green)
+- [x] container main.rs: arg skeleton + fail-closed --dir manifest check (3 real tests via run(args)); **wry dep deferred to renderer.rs landing** (D16 transitional: this host 20.04 lacks webkit2gtk-4.1; CI unaffected until wry returns)
+- [ ] sandbox.rs boot-order state machine (next pure task; manifest shape via omnilet-patch types)
+- [ ] renderer.rs WryBackend impl + wry dep return — BLOCKED on webkit2gtk env (Docker/22.04 lane; task 1 spike also blocked)
+- [ ] demo-app + manifest sample (validates against rule-schema JSON)
+- [ ] PolyOrch lane for container bin (with wry return)
+- [ ] SDD.md clauses + memory sync + T3 human verification

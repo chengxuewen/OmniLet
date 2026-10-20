@@ -76,3 +76,10 @@
 - **JSSDK 七件套**（H5 侧唯一话语权）：navigateTo / navigateBack / switchTab / reLaunch / redirectTo / postMessage / getEnv；容器注入通道 bootstrap，SDK 脚本走静态资源；postMessage 攒四时机（后退/销毁/分享/复制链接）批量送。
 - **数据边界**：轻应用自身数据=隔离（不变量⑤）；第三方站点 cookie=按 Web 标准跨轻应用共享（Android 平台现实 + 业务正确性，D13-5）。
 - **平台×模式矩阵（D14 定稿）**：标准模式全平台（=iframe 映射）。HMI 模式 web-view：Linux=✅ WPE OSR（§5.4）· Windows=✅ WebView2 Composition · **macOS=触发制（CefBackend/CEF windowless，D14）** · **iOS=范围外（平台矩阵不含 iOS HMI，非缺陷非不支持——D14/苹果政策事实）** · Android=路径存在（draw-canvas），承诺随移动 HMI 切片设计。
+
+
+## 9. 能力总线命名（D17：编号即许可）
+
+- 登记格式：`omnilet.<capability>.<method>`（不合规名字注册即拒）。
+- **一个词三处用**：capability 段 = manifest 权限声明词 = 授权判定词 = 审计日志词，零映射表。
+- 业务观感对齐 `chrome.<api>.<method>` 词形；wx.* 兼容面为独立产品策略议题（未裁）。

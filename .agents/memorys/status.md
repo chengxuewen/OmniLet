@@ -24,7 +24,7 @@
 
 ## Next steps
 
-1. First implementation slice (order per planning): compiler kernel skeleton (table-driven + Babel kernel v1; DSL syntax + codegen mode already ruled in D10) OR container SDK core (wry standard mode consuming the frozen Renderer trait)
+1. Continue container-core-wry slice: sandbox.rs (pure, next) → renderer.rs+PolyOrch lane (blocked: webkit2gtk env — Docker/22.04 lane per D16 transitional) → demo-app+manifest → SDD/T3
 2. Renderer interface consumers: wry standard slice first (design check for the frozen trait, extension slots expected to gain methods)
 3. T2 integration gates as surfaces land (engine-consistency harness, schema golden tests)
 
