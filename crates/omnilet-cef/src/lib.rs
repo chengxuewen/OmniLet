@@ -179,10 +179,10 @@ wrap_render_handler! {
     }
 }
 
-/// The offline serving lane: delegate resource loads to the process
-/// ResourceManager (directory provider added by load_offline_dir).
-/// IO-thread contract: manager provider callbacks arrive on CEF's IO thread
-/// (provider debug_asserts it; we only hand objects over, no thread jumps).
+// The offline serving lane: delegate resource loads to the process
+// ResourceManager (directory provider added by load_offline_dir).
+// IO-thread contract: manager provider callbacks arrive on CEF's IO thread
+// (provider debug_asserts it; we only hand objects over, no thread jumps).
 wrap_resource_request_handler! {
     struct OfflineRrh {
         serving: ServingState,
