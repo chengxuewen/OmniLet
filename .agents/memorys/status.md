@@ -1,15 +1,15 @@
 # OmniLet Status
 
-**Generated**: 2026-10-16 (doc-audit refresh) | Phase: 1 fully decided (D1-D8), scaffold next | Branch: master
+**Generated**: 2026-10-20 | Phase: 2 done (D10/D11) + cef-backend slices T1-T6/T8/T9 green | Branch: master (072a12b)
 
 ## Overview
 
 | Item | State |
 |----|------|
 | Project | OmniLet (万应) — multi-end light-app container platform ("compile-time multi-end + runtime container"); definition = docs/whitepaper.md v1.0 (D2) |
-| Tech stack | **Engine/container = Rust** (D3): wry standard mode + self-built GPU HMI mode (skia-safe/vello + wgpu + taffy), rquickjs/rusty_v8 logic layer, C ABI host integration. Compile-side stack: compiler = table-driven + kernel-replaceable (Babel v1 → SWC v2), MVP targets = WeChat/Web/own-container, monorepo (D5); console = TS full-stack (Node+React+PostgreSQL, monorepo console/), test matrix = 4-tier pyramid + 3 release red-lines (D6) |
-| Docs | whitepaper v1.0 + tech-whitepaper V4.0 + architecture v0.2 + reference/ (11 profiles) + test-matrix.md (D6) |
-| Source | none yet (agent toolchain + PolyOrch build orchestrator submodule @5945f2a + CMake assembly skeleton, D7) |
+| Tech stack | **Engine/container = Rust** (D3): standard mode = CefBackend Linux (D18) + wry win/mac (winmac-wry slice); self-built GPU HMI mode (skia-safe/vello + wgpu + taffy), rquickjs/rusty_v8 logic layer, C ABI host integration. Compile-side stack: compiler = table-driven + kernel-replaceable (Babel v1 → SWC v2), MVP targets = WeChat/Web/own-container, monorepo (D5); console = TS full-stack (Node+React+PostgreSQL, monorepo console/), test matrix = 4-tier pyramid + 3 release red-lines (D6) |
+| Docs | whitepaper v1.0 + tech-whitepaper V4.0 + architecture v0.2 + reference/ (11 profiles) + test-matrix.md (D6) + crates/omnilet-container/SDD.md (CEF-01..08 boot/serving/OSR contract lane) |
+| Source | live workspace: crates/ (contract/render/webview/patch/channel/jsengine/cage/protocol/omnilet-cef/omnilet-container/omnilet-cli …) — cef slices green (lifecycle example rc=0 pixel-proof, container --dir smoke); PolyOrch submodule + CMake assembly (D7) |
 | Agent toolchain | ported and neutralized from VisiaEngine (D1); rules/rust/ + rust-analyzer now CORRECT per D3; archive at `.refinfo/VisiaEngine/` |
 
 ## Phase status
@@ -21,12 +21,13 @@
 | 1 engine stack decision (Rust dual-mode) | done (D3) |
 | 1b compile-side + console + test-matrix decisions | done (D5 + D6) |
 | 2 repo scaffold | done (D10/D11; scaffold-monorepo plan executed) |
+| 3 cef-backend slices (T1-T6/T8/T9) | green 2026-10-20 (072a12b); T7 expected-blocked (CEF-07) |
 
 ## Next steps
 
-1. Continue container-core-wry slice: sandbox.rs (pure, next) → renderer.rs+PolyOrch lane (blocked: webkit2gtk env — Docker/22.04 lane per D16 transitional) → demo-app+manifest → SDD/T3
-2. Renderer interface consumers: wry standard slice first (design check for the frozen trait, extension slots expected to gain methods)
-3. T2 integration gates as surfaces land (engine-consistency harness, schema golden tests)
+1. cef-backend plan: T6/T8/T9 done (pixel-green proof, 072a12b). Next T10: CMakeLists `polyorch_rust_build` omnilet-container lane + gate breakage-probe; then T11 docs-closeout
+2. T7 bridge lane stays expected-blocked (CEF-07); injection leg = V8 factory or fetch-bridge fallback (own decision when opened)
+3. Renderer interface consumers: winmac-wry slice (D18: wry-Linux retired; win/mac keep wry)
 
 ## Open items (doc-audit 2026-10-16 register — each with its trigger)
 

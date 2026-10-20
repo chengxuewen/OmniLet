@@ -22,7 +22,7 @@
 
 ## Phase 2: Loading + bridge (contract flesh)
 
-- [x] **T6 omnilet:// scheme handler via omnilet-protocol** ✅ scheme-flags boot registration + manager directory provider + RRH pass-through counter; lifecycle example painted=true offline_served=1; SDD CEF-06 (string-type archaeology footnote recorded to stop re-tripping)
+- [x] **T6 omnilet:// scheme handler via omnilet-protocol** ✅ scheme-flags boot registration + manager directory provider + RRH pass-through counter; lifecycle example painted=true offline_served=1; SDD CEF-06 (string-type archaeology footnote recorded to stop re-tripping). 2026-10-20 upgrade: sync memory handler serving (PIT-1/PIT-2 root-caused), pixel终态 green=true pixel=(0,170,68), CEF-08 gpu-compositing 开关入 boot
   - resource.rs registers scheme (browser-process once) + per-browser handler serves via `resolve()`; miss → 404 + audit line
   - Verify: unit tests (resolve mapping reuses protocol crate's 4 green tests as source truth); integration: demo HTML loads via omnilet:// (T2 harness extended)
 - [~] **T7 eval + register_bridge (message_router adapter, D17 naming)** — PARTIAL, BLOCKED-BY-CEF-BEHAVIOR (SDD CEF-07): registry+dispatcher+responder+browser-side receive all wired & compiling; render-side JS injection lane switched to self-protocol route (frame-execute dead in this combo; process messages + render-local eval verified alive). Acceptance flips green when injection leg lands (V8 factory or fetch-bridge fallback).
@@ -31,10 +31,10 @@
 
 ## Phase 3: Cage + wiring (security hooks armed)
 
-- [ ] **T8 set_request_filter + set_navigation_policy (D13 defaults)**
+- [x] **T8 set_request_filter + set_navigation_policy (D13 defaults)** ✅ cage.rs decide_navigation/resource/popup + audit（4 unit 绿）；OfflineRh on_before_browse 接线（block=1+audit line）
   - handler.rs: subframe/resource requests → single-point filter (registered RequestFilter); popup open → deny+audit; top-nav off-list → block+audit (D13-2 cage table lives HERE first)
   - Verify: pure-decision unit tests (allow/block/audit-row) + one live check: page trying window.open → denied (JS-side sees nothing; audit log has line)
-- [ ] **T9 container main → real `--dir` path**
+- [x] **T9 container main → real `--dir` path** ✅ fail-closed manifest 检查 + headless load-and-prove；实测 `--dir examples/demo-app` → LOADED painted served=1, rc=0（2026-10-20）
   - Replace stub: demo-app loads, first frame, one bridge round-trip on launch; `--help` unchanged
   - Verify: scripted smoke (windowed manual = T3-honesty note; headless CI: --dir validation tests exist already, extend with render proof flag)
 - [ ] **T10 PolyOrch lane + gates**

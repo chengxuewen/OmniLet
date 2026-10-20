@@ -46,8 +46,9 @@
 
 ## CEF-06: offline serving lane（目录级离线包供带）
 
-- **操作**：`load_offline_dir(dir)` → 全局 `ResourceManager` 注册 `add_directory_provider("omnilet://app", dir, 0, "omnilet-app")`（同 id 重入 = 替换）→ `navigate("omnilet://app/index.html")`；scheme 在 boot 时注册（STANDARD|LOCAL|SECURE|CORS 位组合，CEF-01 时序）
-- **预期**：omnilet:// 请求命中 serving 计数（`offline_served()>0` 为链路活性证明，lifecycle example 实测 =1）；`omnilet-protocol::resolve` 的遍历防护语义即 serving 语义（unit 测试双端同源）
+- **操作（2026-10-20 改版，同步内存供带）**：`load_offline_dir(dir)` 持目录；RRH `resource_handler` 回调 → `resolve_omnilet(url)`（遍历防护=omnilet-protocol 语义）→ 文件整读内存 → `OfflineResHandler`（`wrap_resource_handler!`）同步供带：`process_request` 即 `cont()` 返 1；`response_headers` 设 status 200 + **bare mime**（见 PIT-1）+ `set_charset("utf-8")` + `response_length=真实字节数`；`read` 拷块，读空返 0。scheme 在 boot 时注册（STANDARD|LOCAL|SECURE|CORS 位组合，CEF-01 时序）。
+  - 旧 ResourceManager async directory-provider 路线**废弃**：external-pump headless 下 provider 永不完成（2026-10-19 root-cause）；StreamResourceHandler 路线**废弃**：供空流（同轮 paint 探针实证）。
+- **预期**：omnilet:// 请求命中 serving 计数（`offline_served()>0`）且页面像素终态可证——lifecycle example `green=true pixel=(0,170,68)`（2026-10-20 实测）；`omnilet-protocol::resolve` 的遍历防护语义即 serving 语义（unit 测试双端同源）
 - **边界（cef-rs 154 字符串考古结论，勿再踩）**：`Request::url()` 返回 `CefStringUserfreeUtf16`——**无 as_str/Display**；唯一取串路 `CefStringUtf16::from(&u).as_slice() → String::from_utf16_lossy`（helper `cef_url_str`）。utf8 系才有 as_str
 - **验证**：`examples/cef_lifecycle.rs` LIFECYCLE-RESULT（painted + served 双断言，2026-10-19 实测 `painted=true offline_served=1`）
 
@@ -61,3 +62,9 @@
 - **决定**：omnilet 桥协议**自建于已验证通道**（process message 双向 + render 本地 V8Context::eval 回调派发），不依赖 frame-execute，暂不依赖 message_router wrapper；V8 函数注入 leg 待 cef-rs V8 factory 辅助可用性核实（无 helper 则退 fetch 型桥：omnilet://__bridge XHR，RRH 同步应答）
 - **验证面**：lifecycle example bridge 段保持"expected-blocked"形态（hits=0 不算失败），协议 lane 落地后翻绿为正式门禁
 - **附**：PAGE-PIXEL 证明形态保留（offline 页中心像素精确匹配供带内容 = 端到端内容验证，T6 强化）
+
+## CEF-08: windowless OSR 必须禁 GPU compositing（2026-10-20 黑帧调查）
+
+- **规则**：`on_before_command_line_processing` 必须 `append_switch("disable-gpu-compositing")`（与 CEF-02 双开关并列）。
+- **症状签名**：GPU 合成器提交面与 OnPaint 缓冲不同块内存——OnPaint 收**全帧 alpha=0 的透明黑**或闪烁白帧；alpha 非 0 像素计数 = 0 是本征指纹（中心采样不够，别信单点）。
+- **实测**：加开关后导航清屏白闪消失；像素 proof 稳定。
