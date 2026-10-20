@@ -497,14 +497,19 @@ impl WebViewBackend for CefBackend {
     }
 
     fn eval(&mut self, script: &str) -> Result<String, WebviewError> {
-        // fire-and-forget now; result-callback channel is T7's bridge work
-        // NOTE (SDD CEF-07): CefFrame::ExecuteJavaScript is non-functional in this
-        // build combo (headless OSR — process messages arrive, this API's dispatch
-        // does not). Bridge protocol rides raw process messages instead; eval kept
-        // as contract surface for when a working lane exists (result channel T7+).
-        let code = CefString::from(script);
+        // D20 (T7 leg re-route): CefFrame::ExecuteJavaScript is non-functional in
+        // this build combo (SDD CEF-07). The call rides the live process-message
+        // lane instead: renderer performs a render-local eval in the frame's V8
+        // context (that lane is proven alive). Result channel stays T7+.
+        let mut message = process_message_create(Some(&CefString::from(
+            crate::bridge::EVAL_MSG_NAME,
+        )))
+        .ok_or_else(|| WebviewError::Lifecycle("process message create failed".into()))?;
+        if let Some(args) = message.argument_list() {
+            args.set_string(0, Some(&CefString::from(script)));
+        }
         self.frame()?
-            .execute_java_script(Some(&code), None, 0);
+            .send_process_message(ProcessId::RENDERER, Some(&mut message));
         Ok("null".into())
     }
 

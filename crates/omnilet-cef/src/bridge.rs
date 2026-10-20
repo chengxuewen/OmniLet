@@ -102,6 +102,9 @@ pub(crate) fn renderer_router() -> Arc<RendererSideRouter> {
     RT.with(|r| r.clone())
 }
 
+/// Internal eval-leg message name (D20): browser -> renderer, render-local eval.
+pub(crate) const EVAL_MSG_NAME: &str = "omnilet-eval";
+
 // Render-process wiring (App::render_process_handler installs this).
 // The three callbacks are exactly the router's documented host-hook points.
 wrap_render_process_handler! {
@@ -114,7 +117,23 @@ wrap_render_process_handler! {
             frame: Option<&mut Frame>,
             context: Option<&mut V8Context>,
         ) {
-renderer_router().on_context_created(browser.cloned(), frame.cloned(), context.cloned());
+            let ctx_owned = context.map(|c| c.clone());
+            renderer_router().on_context_created(browser.cloned(), frame.cloned(), ctx_owned.clone());
+            // D20: BOOTSTRAP_JS lands render-local here — frame-execute is dead in
+            // this combo (SDD CEF-07) and the facade is window.cefQuery's JS surface.
+            // NOTE: CEF eval REQUIRES both output slots non-null; a None retval
+            // short-circuits to false with no exception (measured 2026-10-20).
+            if let Some(ctx) = ctx_owned.as_ref() {
+                let mut ret: Option<V8Value> = None;
+                let mut exc: Option<V8Exception> = None;
+                let _ = ctx.eval(
+                    Some(&CefString::from(BOOTSTRAP_JS)),
+                    Some(&CefString::from("omnilet-bootstrap")),
+                    0,
+                    Some(&mut ret),
+                    Some(&mut exc),
+                );
+            }
         }
         fn on_context_released(
             &self,
@@ -132,6 +151,33 @@ renderer_router().on_context_created(browser.cloned(), frame.cloned(), context.c
             source_process: ProcessId,
             message: Option<&mut ProcessMessage>,
         ) -> i32 {
+            // D20 eval leg: internal "omnilet-eval" messages run render-local in the
+            // frame's V8 context (the live lane; frame-execute is dead per CEF-07).
+            let name = message.as_ref().map(|m| crate::cef_url_str(&m.name())).unwrap_or_default();
+            if name == EVAL_MSG_NAME {
+                let code = message
+                    .as_ref()
+                    .and_then(|m| m.argument_list())
+                    .and_then(|l| l.value(0))
+                    .map(|v| crate::cef_url_str(&v.string()));
+                let ctx = frame
+                    .and_then(|f| f.v8_context())
+                    .or_else(|| browser.and_then(|b| b.main_frame()).and_then(|mf| mf.v8_context()));
+                if let (Some(code), Some(ctx)) = (code, ctx) {
+                    // Result channel is T7+ (WebviewEvent surface); eval runs
+                    // fire-and-forget for now. Slots per CEF contract (D20).
+                    let mut ret: Option<V8Value> = None;
+                    let mut exc: Option<V8Exception> = None;
+                    let _ok = ctx.eval(
+                        Some(&CefString::from(code.as_str())),
+                        Some(&CefString::from("omnilet-eval")),
+                        0,
+                        Some(&mut ret),
+                        Some(&mut exc),
+                    );
+                }
+                return 1;
+            }
             renderer_router()
                 .on_process_message_received(
                     browser.cloned(),
@@ -184,16 +230,24 @@ wrap_life_span_handler! {
 /// static resource later; this minimal form already speaks the browser-side
 /// Dispatcher's wire format). `get` carries onSuccess to prove the round-trip.
 pub const BOOTSTRAP_JS: &str = r#"
+// NOTE (D20): the cef-rs message_router V8 handler REQUIRES both onSuccess and
+// onFailure functions on every cefQuery object (a missing member reads back as
+// undefined and trips the type-function guard). The facade always passes both.
 window.omnilet = window.omnilet || {};
 window.omnilet.storage = {
   set: function (k, v) {
-    window.cefQuery({ request: JSON.stringify({ m: "omnilet.storage.set", a: JSON.stringify([k, v]) }) });
+    window.cefQuery({ request: JSON.stringify({ m: "omnilet.storage.set", a: JSON.stringify([k, v]) }),
+      onSuccess: function () {},
+      onFailure: function (c, m) { if (window.console) console.error("omnilet.storage.set failed", c, m); } });
   },
   get: function (k, onSuccess) {
-    window.cefQuery({ request: JSON.stringify({ m: "omnilet.storage.get", a: k }), onSuccess: onSuccess });
+    window.cefQuery({ request: JSON.stringify({ m: "omnilet.storage.get", a: k }),
+      onSuccess: onSuccess,
+      onFailure: function (c, m) { if (window.console) console.error("omnilet.storage.get failed", c, m); } });
   }
 };
 "#;
+
 
 // ─── T6 serving handler (memory-buffer, synchronous). The StreamResourceHandler
 // path served nothing usable in this combo — root-caused via paint probes

@@ -115,16 +115,14 @@ fn main() -> std::process::ExitCode {
 
     backend.eval(omnilet_cef::BOOTSTRAP_JS).expect("bootstrap eval");
     backend.pump_drive();
-    // NOTE T7 (SDD CEF-07): frame-execute dispatch is non-functional in this
-    // build combo (headless OSR); the bridge round-trip below is EXPECTED-BLOCKED
-    // (hits stay 0) until the process-message protocol lane lands. Kept as the
-    // acceptance shape for that lane — do not read green here as bridge health.
-    // set k=v from the page
+    // NOTE: backend.eval rides the omnilet-eval process-message leg (D20);
+    // the old frame-execute leg was dead (SDD CEF-07) and is no longer used.
+    // D20: bridge lane is LIVE (render-local facade + process-message transport).
+    // Acceptance: page set -> browser handler (hits) -> responder answer -> page
+    // onSuccess callback runs a SECOND set -> 'echoed' key proves the full circle.
     backend
         .eval("omnilet.storage.set('user','张三')")
         .expect("eval set");
-    // get with onSuccess that SETS AGAIN (proves the browser->render answer
-    // actually ran the JS callback: third native hit closes the loop)
     backend
         .eval("omnilet.storage.get('user', function(v){ omnilet.storage.set('echoed', v); })")
         .expect("eval get");
