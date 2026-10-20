@@ -28,6 +28,9 @@ pub fn cef_url_str(u: &CefStringUserfreeUtf16) -> String {
         .unwrap_or_default()
 }
 
+/// Latest painted frame buffer: BGRA bytes + width + height.
+type FrameBuf = (Vec<u8>, i32, i32);
+
 /// Process-wide resource manager (offline directory serving lane, T6).
 fn resource_manager() -> &'static Arc<Mutex<ResourceManager>> {
     static RM: OnceLock<Arc<Mutex<ResourceManager>>> = OnceLock::new();
@@ -97,7 +100,7 @@ wrap_app! {
 struct FrameSink {
     bounds: Arc<Mutex<(i32, i32)>>,
     painted: Arc<AtomicBool>,
-    last_frame: Arc<Mutex<Option<(Vec<u8>, i32, i32)>>>,
+    last_frame: Arc<Mutex<Option<FrameBuf>>>,
 }
 
 /// Shared serving state for the offline lane (T6): current offline root +
@@ -279,7 +282,7 @@ pub struct CefBackend {
     serving: ServingState,
     bounds: Arc<Mutex<(i32, i32)>>,
     painted: Arc<AtomicBool>,
-    last_frame: Arc<Mutex<Option<(Vec<u8>, i32, i32)>>>,
+    last_frame: Arc<Mutex<Option<FrameBuf>>>,
     offline_dir: Option<std::path::PathBuf>,
     bridges: Vec<(String, crate::bridge::SharedBridge)>, // registered set (T7 live)
     filter: Option<RequestFilter>,         // consumed T8

@@ -8,7 +8,7 @@ use cef::wrapper::message_router::{
     MessageRouterRendererSide, MessageRouterRendererSideHandlerCallbacks, RendererSideRouter,
 };
 use cef::*;
-use omnilet_webview::{BridgeHandler, BridgeRequest, BridgeResponder};
+use omnilet_webview::{BridgeRequest, BridgeResponder};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, OnceLock, RwLock};
@@ -102,8 +102,8 @@ pub(crate) fn renderer_router() -> Arc<RendererSideRouter> {
     RT.with(|r| r.clone())
 }
 
-/// Render-process wiring (App::render_process_handler installs this).
-/// The three callbacks are exactly the router's documented host-hook points.
+// Render-process wiring (App::render_process_handler installs this).
+// The three callbacks are exactly the router's documented host-hook points.
 wrap_render_process_handler! {
     pub struct OmniletRph {}
 

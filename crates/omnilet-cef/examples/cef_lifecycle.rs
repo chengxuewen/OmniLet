@@ -93,7 +93,7 @@ fn main() -> std::process::ExitCode {
         Box::new(move |req| {
             let v = s2.lock().unwrap().get(&req.payload).cloned();
             h2.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-            let _ = req.responder.respond(Ok(v.unwrap_or_else(|| "null".into())));
+            req.responder.respond(Ok(v.unwrap_or_else(|| "null".into())));
         }),
     )
     .expect("register get bridge");
