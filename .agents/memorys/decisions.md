@@ -287,3 +287,11 @@
 - **pump numbers**: external-pump shape (CEF-01) — frame arrival measured within the lifecycle example's 40×2ms `pump_drive` bound; **contract extension slots actually exercised**: WebViewBackend gained `pump_drive`/`pump_timeout` (omnilet-webview lib.rs:119/123) — the ten-method freeze plus two pump slots, decided by D18's hardest-consumer measurement, not paper.
 - **behavior findings**: `ExecuteJavaScript` dead under headless OSR (SDD CEF-07, canary-proved); OSR black-frame signature = whole-frame alpha=0 (SDD CEF-08); `cef_response.mime_type` bare-type contract (PIT-1) + no URL-escaping inside file content (PIT-2).
 - **contract lane authority**: SDD CEF-01..09 is the single source of truth for landed behavior; this entry is an index — numbers/pump shapes are NOT duplicated here to prevent drift.
+
+## D20: T7 注入腿选路 = 调通已布线的 V8 注册（2026-10-20, user-adjudicated one by one; 1 卡）
+
+- **裁决 A（收窄定义）**：不新写注入路线——官方 message_router 的 renderer 侧本来就用 **V8 原生注册**（`v8_value_create_function` + `window.set_value_bykey`，message_router.rs:1519+ 本地读源证实），且 `OmniletRph.on_context_created` 已把回调转发进 router（bridge.rs:117）。T7 的工作 = 用探针把"cefQuery 未出现"的死因钉死（回调未触发 / set_value 静默失败 / 原 canary 探法有误），修通即绿。
+- **依据（主流谱系）**：CEF 官方 router、Electron preload、Tauri v1 init-script、Android addJavascriptInterface——全部主流家的第一段 JS 都走平台 hook 注入；纯 URL 桥面（B）无主流先例（Tauri v2 的 fetch 只当传输，门面仍靠注入）。
+- **降级预案（书面化）**：探针若证明 V8 注册在本组合不可行 → **B**：fetch 传输 + 门面词表协议级改型（api-interface-design 轨）；**C**（供带改写注入）因 D8 整包签名完整性原则性冲突，仅留名不推荐。
+- **影响**：bridge.rs 探针一轮；若 A 通，T7 acceptance（demo storage 往返）直接翻绿，DSL/H5 契约零改动。
+- **Outcome (2026-10-20, 6f18578)**: A confirmed end-to-end — probes showed cefQuery was installed all along (the old "not present" reading came from probing through the DEAD frame-execute leg); the real blockers were the wrapper's BOTH-callbacks requirement (PIT-3) and eval's null-output-slot short-circuit (PIT-4). T7 acceptance green: bridge_hits=3, echo_roundtrip=true. Downgrades B/C unused; eval result-channel (JS value back to browser) stays as the T7+ WebviewEvent extension work, not a blocker.

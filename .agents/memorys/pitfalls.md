@@ -28,3 +28,17 @@
 - **Solution**: 文件内容用真 `#00aa44`；仅 URL 字符串（data:/navigate 参数）才转义
 - **Verification**: green=true pixel=(0,170,68)，rc=0
 - **Forbidden**: 把 URL 语境（转义/编码）照搬到文件/字符串内容语境；排查空帧先 dump 全帧（ppm/PIL）读出实际渲染物，再猜管线
+
+## PIT-3: cef-rs message_router cefQuery 缺任一 callback 静默不发（2026-10-20）
+- **Symptom**: window.cefQuery 存在（typeof=function）、调用不抛错、eval ok，但 browser 侧一条消息都收不到（bridge_hits=0）
+- **Root cause**: RendererSideV8Handler::execute 对 onSuccess/onFailure 用 value_bykey 取值；键缺失时 V8 回读 undefined，命中 `is_function()==0 → return_exception` 分支——异常设给 handler 层后 **JS 侧只表现为 undefined 返回，门面不检查返回值就静默丢调用**
+- **Solution**: 门面每次 cefQuery 都传齐两个 function（noop/onError-console 即可）；见 BOOTSTRAP_JS D20 版
+- **Verification**: example 探针矩阵（带双 callback 的 raw 调用立即送达；缺 callback 的同型调用不发）；acceptance hits 计数
+- **Forbidden**: 按上游注释猜"optional callbacks"——以行为矩阵实测为准
+
+## PIT-4: CefV8Context::eval 输出槽传 null → false 且无异常（2026-10-20）
+- **Symptom**: eval 大段 JS 返回 ok=0 但 exc=None，同 context 的短表达式却成功
+- **Root cause**: cef-rs `eval(code, url, line, retval, exception)` 的 retval/exception 为 Option 槽位；传 None 产生 null 指针，C++ 实现把 null 输出参数当调用无效直接 return false——不编译、不执行、不设异常
+- **Solution**: 两个输出槽永远给 Some(&mut Option<T>) 容器，不用的结果丢弃即可
+- **Verification**: bootstrap eval 从 ok=0 转 ok=1 的唯一变更就是补 retval 容器
+- **Forbidden**: 给 C API 的 out 参数传 null 来"忽略返回值"

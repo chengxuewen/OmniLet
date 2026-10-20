@@ -4,7 +4,7 @@
 
 ## OVERVIEW
 
-OmniLet（万应）— multi-end light-app container platform ("compile-time multi-end + runtime container"). **Scaffolded and slicing**: Rust workspace under `crates/` (contract crates + omnilet-cef/omnilet-container live), CEF-Backend Linux standard-mode slices T1-T6/T8-T10 green (pixel-proved offline serving + PolyOrch lane), agent toolchain + PolyOrch assembly in place. Stacks all decided: engine/container = **Rust dual-mode** (D3, Linux standard = CefBackend per D16/D18), compile-side = table-driven compiler (D5), console = TS full-stack (D6), build = PolyOrch submodule (D7). Next: T7 injection-leg decision, then compile-side slices.
+OmniLet（万应）— multi-end light-app container platform ("compile-time multi-end + runtime container"). **Scaffolded and slicing**: Rust workspace under `crates/` (contract crates + omnilet-cef/omnilet-container live), CEF-Backend Linux standard-mode slices T1-T6/T8-T10 green (pixel-proved offline serving + PolyOrch lane), agent toolchain + PolyOrch assembly in place. Stacks all decided: engine/container = **Rust dual-mode** (D3, Linux standard = CefBackend per D16/D18), compile-side = table-driven compiler (D5), console = TS full-stack (D6), build = PolyOrch submodule (D7). Next: compile-side slices (D5 轨道) or the open post-plan slices (binary-envelope perf / winmac-wry / HMI-Renderer consumer).
 
 ## STRUCTURE
 
@@ -49,9 +49,9 @@ OmniLet/
 | MVP done-definition | `docs/mvp-checklist.md` | 20 acceptance + 7 exclusions; entry change = new decision |
 | DSL contract (template/units/negative list) | `docs/dsl-spec.md` | skeleton at scaffold; grows with compiler slices |
 | Dev shell (B0) spec | `docs/devtools-spec.md` | winit+wry+wgpu shell; automator driver contract |
-| Past decisions | `.agents/memorys/decisions.md` | append-only, D1-D19 (D19 = cef slice evidence index) |
-| CEF runtime contracts (boot/serving/OSR/cage) | `crates/omnilet-container/SDD.md` | CEF-01..09; single source for landed behavior |
-| Current plan status (cef-backend) | `.sisyphus/plans/cef-backend/tasks.md` | T1-T6/T8-T10 done; T7 blocked (CEF-07) |
+| Past decisions | `.agents/memorys/decisions.md` | append-only, D1-D20 (D19 = cef slice evidence index, D20 = T7 injection ruling) |
+| CEF runtime contracts (boot/serving/OSR/cage) | `crates/omnilet-container/SDD.md` | CEF-01..10; single source for landed behavior |
+| Current plan status (cef-backend) | `.sisyphus/plans/cef-backend/tasks.md` | T1-T11 done (T7 live via D20 ruling A) |
 | Pitfalls | `.agents/memorys/pitfalls.md` + `rules/common/edit-safety.md` | append-only / live rules |
 
 ## CONVENTIONS (this project only)

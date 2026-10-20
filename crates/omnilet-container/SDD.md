@@ -58,7 +58,7 @@
   - `CefFrame::SendProcessMessage`：**活**（双向，channel 送达，canary 实证）
   - `V8Context::eval`（render 本地）：**活**（retval 可读，typeof 实测回传）
   - `CefFrame::ExecuteJavaScript`（browser 发起）：**不发**（同 IPC 底座上无效果；was_hidden/set_focus 唤醒无效；脚本 url 有/无均无效）
-  - cef-rs message_router wrapper `on_context_created`：调用无 panic，但 `window.cefQuery` 未出现（与 execute_js 同域受害，wrapper 路线未走通）
+  - cef-rs message_router wrapper `on_context_created`：**cefQuery 一直在装**（V8 原生注册成功；旧条"未出现"=用已死的 frame-execute 腿探测造成的误读，2026-10-20 D20 探针翻案）
 - **决定**：omnilet 桥协议**自建于已验证通道**（process message 双向 + render 本地 V8Context::eval 回调派发），不依赖 frame-execute，暂不依赖 message_router wrapper；V8 函数注入 leg 待 cef-rs V8 factory 辅助可用性核实（无 helper 则退 fetch 型桥：omnilet://__bridge XHR，RRH 同步应答）
 - **验证面**：lifecycle example bridge 段保持"expected-blocked"形态（hits=0 不算失败），协议 lane 落地后翻绿为正式门禁
 - **附**：PAGE-PIXEL 证明形态保留（offline 页中心像素精确匹配供带内容 = 端到端内容验证，T6 强化）
@@ -75,3 +75,9 @@
 - **预期**：改策经 `set_request_filter`/`set_navigation_policy`（WebViewBackend trait 面）→ cage.rs 单点读写；闸判定跑在 read 锁内（并发纪律同 bridge registry）。
 - **边界**：audit 行 = 进程 stderr 一行制（layer+kind+URL+reason）；结构化审计总线属 console 侧切片，不在本层。
 - **验证**：`cargo test -p omnilet-cef`（4 decide/audit case 绿）；live 面 = lifecycle example 无 popup/越闸导航误伤（rc=0 全程）。
+
+## CEF-10: message_router wrapper 的 cefQuery 双 callback 硬要求 + eval 输出槽非空（2026-10-20 D20 探针终审）
+
+- **规则一（PIT-3）**：cef-rs `RendererSideV8Handler` 对 cefQuery 对象的 `onSuccess`/`onFailure` 走 `value_bykey → is_function` 校验；缺省成员回读 undefined 触发 type-function guard → **静默不发消息（JS 无异常）**。门面 BOOTSTRAP_JS 必须两个 callback 都给（内部吞掉即可）。
+- **规则二（PIT-4）**：`CefV8Context::eval` 的 retval/exception 输出槽任一为 null → C 层**返回 false 且不设异常**。两个槽永远传 Some(&mut Option<...>) 容器。
+- **验证**：lifecycle example T7 acceptance（hits=3 + echo_roundtrip=true）；违反任一条表现为"eval 成功但消息消失"，本条即诊断手册。
