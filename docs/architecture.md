@@ -156,4 +156,6 @@ Web:     iframe(形态A) / WebComponent(形态B)
 | 构建/CI/仓库布局 | **Monorepo**：pnpm workspace + cargo workspace 并存，路径过滤 CI | ✅ D5 |
 | 测试 | **四层金字塔 + 三红线**（docs/test-matrix.md；T4 全平台：Win/Linux/macOS/iOS/Android/Web） | ✅ D6 |
 
-> 全表已裁决（D3/D5/D6，全部 user-adjudicated）。新增选型一律走 decisions.md 新条目；修订本表须引用对应决策编号。
+> 全表已裁决（D3/D5/D6/D12-D14，全部 user-adjudicated）。新增选型一律走 decisions.md 新条目；修订本表须引用对应决策编号。
+
+**HMI 自绘模式平台矩阵（D14）**：Linux（车机/工控，WPE OSR）✅ · Windows（工控大屏，WebView2 Composition）✅ · macOS（web-view 走 CefBackend 触发制）· **iOS=范围外**（iOS 承诺标准模式全能力；苹果 WebKit 独占政策+无离屏 API 使 iOS×HMI×web-view 结构性无解，产品矩阵不承诺）。web-view 细节见 dsl-spec §8。

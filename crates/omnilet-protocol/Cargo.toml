@@ -1,0 +1,9 @@
+[package]
+name = "omnilet-protocol"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+# intentionally EMPTY — pure URL↔path mapping logic (test-matrix T1: pure unit tier,
+# no webview/system deps; the GTK wall must never block these tests)

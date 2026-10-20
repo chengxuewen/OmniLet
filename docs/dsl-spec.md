@@ -38,6 +38,7 @@
 | 运行时拼接组件名（`<{{ tagName }}>`） | 静态编译（D10-2）无法穷举 | 条件分支 `<view wx:if>` 全枚举 |
 | 函数式子组件宏（模板内调函数返回模板） | 破坏静态可翻译性 | 组件 props + slot |
 | 跨文件动态 include | 同上 | 显式 import 组件 |
+| `<iframe>` 标签 | 双渲染路径语义不可对齐（标准模式=iframe / HMI 模式=OSR 实例，行为差异泄漏） | `<web-view src>`（D13-1；编译器对 iframe 自动翻译并告警） |
 
 （首版即冻结扩展流程：新增负面条目 = dsl-spec 修订 + golden 测试同步）
 
@@ -62,3 +63,12 @@
 ## 7. 兼容矩阵（占位）
 
 @omnilet/runtime 垫片 ↔ 容器 SDK 版本的兼容矩阵（GAP-5）——golden 测试即矩阵行，随 T2 一致性 harness 落地。
+
+## 8. web-view 组件（嵌套网页；D13 五卡裁决摘要）
+
+- **入口唯一**：嵌套外部网页只用 `<web-view src>`（iframe 已入 §2 负清单）。
+- **默认安全笼**（可关不可开）：脚本/同源数据=开；弹窗=默认拒（桥请求宿主审批，开的子窗仍是笼内窗）；顶层跳转=锁业务域名。
+- **资格**：src 业务域名需**归属验证**（验证文件/DNS，对齐微信模型；console 后台管理，Phase 随后台设计细化）。
+- **JSSDK 七件套**（H5 侧唯一话语权）：navigateTo / navigateBack / switchTab / reLaunch / redirectTo / postMessage / getEnv；容器注入通道 bootstrap，SDK 脚本走静态资源；postMessage 攒四时机（后退/销毁/分享/复制链接）批量送。
+- **数据边界**：轻应用自身数据=隔离（不变量⑤）；第三方站点 cookie=按 Web 标准跨轻应用共享（Android 平台现实 + 业务正确性，D13-5）。
+- **平台×模式矩阵（D14 定稿）**：标准模式全平台（=iframe 映射）。HMI 模式 web-view：Linux=✅ WPE OSR（§5.4）· Windows=✅ WebView2 Composition · **macOS=触发制（CefBackend/CEF windowless，D14）** · **iOS=范围外（平台矩阵不含 iOS HMI，非缺陷非不支持——D14/苹果政策事实）** · Android=路径存在（draw-canvas），承诺随移动 HMI 切片设计。

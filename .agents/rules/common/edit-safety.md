@@ -446,3 +446,19 @@ Sweep ALSO covers hardcoded ARTIFACT PATHS whose generator layout changed (the s
 **Blocking condition**: `git reset/commit/amend` issued against a remembered tree state; force operations suggested without checking origin position (`ls-remote`).
 
 **Source**: 2026-10-16 the 'why did main diverge' round + the interrupted-C24 turn.
+
+### 39. Proxy routing: --noproxy '*' is for LOCALHOST ONLY — international resources MUST go through the proxy (2026-10-19)
+
+**Rule**: the machine's env carries `http_proxy=10.144.0.1:7897` (stable international path, 0.4-0.6s). The original "curl to localhost must use --noproxy" lesson (Vite incident) applies to LOCALHOST ONLY. Applying `--noproxy '*'` to ALL requests kicked international traffic onto the congested direct route (6s timeouts, "network unreachable" mirages) — an entire research round degraded. crates.io API additionally returns 403 via proxy without a UA header — send `-A <ua>`.
+
+**Verification**: layered diagnosis — (1) domestic reference (baidu, expect ~0.05s), (2) proxy route (expect <1s), (3) direct route (expect timeouts when the window is closed). If (2) works and (3) fails → the answer is route selection, not "the network is down".
+
+**Blocking condition**: any curl to non-localhost with `--noproxy '*'`; declaring "network unreachable" after testing only the direct route.
+
+### 40. crates.io: use the China mirror (rsproxy) as the DEFAULT route — proxy+UA is the fallback (2026-10-19)
+
+**Rule**: `~/.cargo/config.toml` carries the rsproxy.cn sparse mirror (source replacement). All cargo network ops (search/fetch/update/add) go through it by default; `cargo search` under a sparse replacement needs `--registry crates-io` (behavior change, not an error). The proxy+UA workaround (#39) is for when the mirror itself is unreachable — mirror first, proxy second.
+
+**Verification**: `pixi run cargo search wry --limit 2 --registry crates-io` returns results; `pixi run cargo update` shows `Updating rsproxy-sparse index`.
+
+**Blocking condition**: fighting crates.io timeouts directly without checking whether the mirror config exists; adding UA headers when the mirror would have avoided the whole problem.

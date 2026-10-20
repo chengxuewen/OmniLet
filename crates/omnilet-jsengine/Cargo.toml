@@ -1,0 +1,12 @@
+[package]
+name = "omnilet-jsengine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+rquickjs = { version = "=0.11.0", features = ["loader"] }  # MSRV 1.85 (0.12+ needs 1.87; pixi rust pinned 1.85.x per D11)
+thiserror = "2"
+
+[lints]
+workspace = true

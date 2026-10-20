@@ -9,6 +9,7 @@ platforms = ["linux-64"]
 rust = ">=1.85,<1.86"          # current stable measured at scaffold-time (D11); bump = lockfile migration
 nodejs = ">=22"                # solver-resolved (pnpm 11 needs >=24.16; engine floor stays 22 in package.json)
 pnpm = ">=11,<12"
+pkg-config = "*"                  # *-sys crates' build probes need it (system webkit2gtk-4.1 via Docker 22.04 env per D12 candidate; conda-forge build rejected by glibc 2.34 solver wall — recorded)
 
 [tasks]
 verify = { cmd = "rustc --version && cargo --version && node --version && pnpm --version" }

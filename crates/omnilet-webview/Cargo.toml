@@ -1,0 +1,11 @@
+[package]
+name = "omnilet-webview"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# Zero webview deps — the frozen WebViewBackend contract surface (D12-add4).
+# wry/cef arrive only in backend crates that IMPLEMENT this trait
+# (same structural discipline as omnilet-render: invariant 3 on the web tier).
+[dependencies]
+thiserror = "2"

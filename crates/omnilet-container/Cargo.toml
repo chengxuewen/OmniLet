@@ -1,0 +1,21 @@
+[package]
+name = "omnilet-container"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "omnilet-container"
+path = "src/main.rs"
+
+[dependencies]
+omnilet-render = { path = "../omnilet-render" }
+omnilet-protocol = { path = "../omnilet-protocol" }
+omnilet-jsengine = { path = "../omnilet-jsengine" }
+wry = "0.57"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+
+[lints]
+workspace = true
