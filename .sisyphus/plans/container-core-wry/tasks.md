@@ -67,3 +67,8 @@
 - [ ] demo-app + manifest sample (validates against rule-schema JSON)
 - [ ] PolyOrch lane for container bin (with wry return)
 - [ ] SDD.md clauses + memory sync + T3 human verification
+
+## D18 rebranch note (2026-10-19)
+wry-dependent tasks (spike/renderer.rs/wry-dep-return/PolyOrch-wry-lane) PARKED → belong to future winmac-wry slice.
+Still in play here (backend-agnostic): sandbox.rs boot-order, demo-app+manifest, SDD clauses, T3/T4 verification framing.
+CEF implementation continues as its own slice: /openspec-propose cef-backend.
