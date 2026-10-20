@@ -1395,6 +1395,8 @@ dependencies = [
  "cef",
  "omnilet-protocol",
  "omnilet-webview",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

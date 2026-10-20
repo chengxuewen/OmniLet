@@ -10,7 +10,7 @@ use omnilet_cef::CefBackend;
 use omnilet_webview::{
     Bounds, NavigationPolicy, WebviewParent, WebViewBackend,
 };
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 fn main() -> std::process::ExitCode {
@@ -68,6 +68,73 @@ fn main() -> std::process::ExitCode {
     let served = backend.offline_served();
     let _ = std::fs::remove_dir_all(&demo);
 
+    // --- T7 bridge round-trip ---
+    use std::collections::HashMap;
+    use std::sync::atomic::AtomicUsize;
+    let store = Arc::new(Mutex::new(HashMap::<String, String>::new()));
+    let hits = Arc::new(AtomicUsize::new(0));
+
+    // (register handlers BEFORE the JS round-trip)
+    let (h1, s1) = (hits.clone(), store.clone());
+    backend.register_bridge(
+        "omnilet.storage.set",
+        Box::new(move |req| {
+            let kv: (String, String) = serde_json::from_str(&req.payload).unwrap_or_default();
+            s1.lock().unwrap().insert(kv.0, kv.1);
+            h1.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            // set has no responder expectation; still answer OK
+        }),
+    )
+    .expect("register set bridge");
+
+    let (h2, s2) = (hits.clone(), store.clone());
+    backend.register_bridge(
+        "omnilet.storage.get",
+        Box::new(move |req| {
+            let v = s2.lock().unwrap().get(&req.payload).cloned();
+            h2.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            let _ = req.responder.respond(Ok(v.unwrap_or_else(|| "null".into())));
+        }),
+    )
+    .expect("register get bridge");
+
+    backend.eval(omnilet_cef::BOOTSTRAP_JS).expect("bootstrap eval");
+    backend.pump_drive();
+    // offline page pixel proof (T6: blue #3366cc of our served index.html)
+    let pixel = backend.center_pixel();
+    let page_pixels_ok = matches!(pixel, Some((51, 102, 204)));
+    println!("PAGE-PIXEL proof center={pixel:?} ok={page_pixels_ok}");
+
+    // NOTE T7 (SDD CEF-07): frame-execute dispatch is non-functional in this
+    // build combo (headless OSR); the bridge round-trip below is EXPECTED-BLOCKED
+    // (hits stay 0) until the process-message protocol lane lands. Kept as the
+    // acceptance shape for that lane — do not read green here as bridge health.
+    // set k=v from the page
+    backend
+        .eval("omnilet.storage.set('user','张三')")
+        .expect("eval set");
+    // get with onSuccess that SETS AGAIN (proves the browser->render answer
+    // actually ran the JS callback: third native hit closes the loop)
+    backend
+        .eval("omnilet.storage.get('user', function(v){ omnilet.storage.set('echoed', v); })")
+        .expect("eval get");
+
+    let t1 = Instant::now();
+    let echoed = loop {
+        for _ in 0..50 {
+            backend.pump_drive();
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        let snapshot = store.lock().unwrap().clone();
+        if snapshot.contains_key("echoed") {
+            break snapshot;
+        }
+        if t1.elapsed() > Duration::from_secs(10) {
+            break snapshot;
+        }
+    };
+    let bridge_hits = hits.load(std::sync::atomic::Ordering::Relaxed);
+
     backend
         .resize(Bounds { x: 0, y: 0, width: 1024, height: 768 })
         .expect("resize");
@@ -78,8 +145,11 @@ fn main() -> std::process::ExitCode {
         std::thread::sleep(Duration::from_millis(2));
     }
 
-    println!("LIFECYCLE-RESULT painted={painted} offline_served={served}");
-    if painted && served > 0 {
+    let echoed = echoed.contains_key("echoed") && echoed.get("user").map(|v| v == "张三").unwrap_or(false);
+    println!(
+        "LIFECYCLE-RESULT painted={painted} offline_served={served} page_pixels={page_pixels_ok} bridge_hits={bridge_hits} echo_roundtrip={echoed}"
+    );
+    if painted && served > 0 && page_pixels_ok {
         std::process::ExitCode::SUCCESS
     } else {
         std::process::ExitCode::FAILURE

@@ -11,8 +11,13 @@ use omnilet_webview::{
     WebViewBackend,
 };
 use cef::wrapper::resource_manager::ResourceManager;
+use crate::bridge::bridge_registry;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
+
+mod bridge;
+
+pub use bridge::BOOTSTRAP_JS;
 
 /// CEF utf16 string → String (the only lossy path through these wrappers:
 /// UserfreeUtf16 → Utf16::as_slice → from_utf16_lossy; utf8 types have as_str)
@@ -52,6 +57,10 @@ wrap_app! {
     }
 
     impl App {
+        fn render_process_handler(&self) -> Option<RenderProcessHandler> {
+            Some(crate::bridge::OmniletRph::new())
+        }
+
         fn on_register_custom_schemes(&self, registrar: Option<&mut SchemeRegistrar>) {
             // omnilet:// = local, secure-context, CORS-eligible (D8 serving lane;
             // flags per cef_scheme_option_t: STANDARD|LOCAL|SECURE|CORS)
@@ -88,6 +97,7 @@ wrap_app! {
 struct FrameSink {
     bounds: Arc<Mutex<(i32, i32)>>,
     painted: Arc<AtomicBool>,
+    last_frame: Arc<Mutex<Option<(Vec<u8>, i32, i32)>>>,
 }
 
 /// Shared serving state for the offline lane (T6): current offline root +
@@ -173,8 +183,12 @@ wrap_render_handler! {
             _height: ::std::os::raw::c_int,
         ) {
             self.sink.painted.store(true, Ordering::Relaxed);
-            // pixel-content checks are the golden-test harness (later T lane);
-            // this lane records "a frame arrived" only
+            // keep the latest frame for pixel-level proofs (eval visibility check)
+            let len = (_width.max(0) * _height.max(0) * 4) as usize;
+            if !_buffer.is_null() && len > 0 {
+                let bytes = unsafe { std::slice::from_raw_parts(_buffer, len).to_vec() };
+                *self.sink.last_frame.lock().unwrap() = Some((bytes, _width, _height));
+            }
         }
     }
 }
@@ -246,6 +260,15 @@ wrap_client! {
         fn request_handler(&self) -> Option<RequestHandler> {
             Some(self.request_handler.clone())
         }
+        fn on_process_message_received(
+            &self,
+            browser: Option<&mut Browser>,
+            frame: Option<&mut Frame>,
+            source_process: ProcessId,
+            message: Option<&mut ProcessMessage>,
+        ) -> i32 {
+            crate::bridge::deliver_browser_message(browser, frame, source_process, message) as i32
+        }
         // popup/navigation cage hooks: T8
     }
 }
@@ -256,8 +279,9 @@ pub struct CefBackend {
     serving: ServingState,
     bounds: Arc<Mutex<(i32, i32)>>,
     painted: Arc<AtomicBool>,
+    last_frame: Arc<Mutex<Option<(Vec<u8>, i32, i32)>>>,
     offline_dir: Option<std::path::PathBuf>,
-    bridges: Vec<(String, BridgeHandler)>, // consumed T7 (message_router adapter)
+    bridges: Vec<(String, crate::bridge::SharedBridge)>, // registered set (T7 live)
     filter: Option<RequestFilter>,         // consumed T8
     policy: NavigationPolicy,              // consumed T8
     event_cb: Option<Box<dyn Fn(WebviewEvent) + Send>>, // consumed T7/T8
@@ -306,6 +330,16 @@ impl CefBackend {
         self.painted.load(std::sync::atomic::Ordering::Relaxed)
     }
 
+    /// Center pixel (R,G,B) of the latest painted frame — eval-visibility proofs.
+    pub fn center_pixel(&self) -> Option<(u8, u8, u8)> {
+        let guard = self.last_frame.lock().ok()?;
+        let (bytes, w, h) = guard.as_ref()?;
+        let (x, y) = (*w / 2, *h / 2);
+        let idx = ((y * *w + x) * 4) as usize;
+        let bgr = bytes.get(idx..idx + 4)?;
+        Some((bgr[2], bgr[1], bgr[0]))
+    }
+
     /// Offline serving hit-count since load (T6 verification surface).
     pub fn offline_served(&self) -> usize {
         self.serving.served.load(Ordering::Relaxed)
@@ -333,6 +367,7 @@ impl Default for CefBackend {
             serving: ServingState::default(),
             bounds: Arc::new(Mutex::new((0, 0))),
             painted: Arc::new(AtomicBool::new(false)),
+            last_frame: Arc::new(Mutex::new(None)),
             offline_dir: None,
             bridges: Vec::new(),
             filter: None,
@@ -352,6 +387,7 @@ impl WebViewBackend for CefBackend {
         let sink = FrameSink {
             bounds: self.bounds.clone(),
             painted: self.painted.clone(),
+            last_frame: self.last_frame.clone(),
         };
         let rrh = OfflineRrh::new(self.serving.clone());
         let rh = OfflineRh::new(rrh.clone());
@@ -371,6 +407,11 @@ impl WebViewBackend for CefBackend {
             None,
         )
         .ok_or_else(|| WebviewError::Lifecycle("browser create returned null".into()))?;
+        // OSR wake: visible + focused (hidden browsers throttle/park JS tasks)
+        if let Some(h) = browser.host() {
+            h.was_hidden(0);
+            h.set_focus(1);
+        }
         self.browser = Some(SendBrowser(browser));
         Ok(())
     }
@@ -412,18 +453,33 @@ impl WebViewBackend for CefBackend {
 
     fn eval(&mut self, script: &str) -> Result<String, WebviewError> {
         // fire-and-forget now; result-callback channel is T7's bridge work
+        // NOTE (SDD CEF-07): CefFrame::ExecuteJavaScript is non-functional in this
+        // build combo (headless OSR — process messages arrive, this API's dispatch
+        // does not). Bridge protocol rides raw process messages instead; eval kept
+        // as contract surface for when a working lane exists (result channel T7+).
         let code = CefString::from(script);
-        let url = CefString::from("omnilet://eval");
         self.frame()?
-            .execute_java_script(Some(&code), Some(&url), 0);
+            .execute_java_script(Some(&code), None, 0);
         Ok("null".into())
     }
 
     fn register_bridge(&mut self, name: &str, handler: BridgeHandler) -> Result<(), WebviewError> {
-        self.bridges.push((name.to_string(), handler));
-        Err(WebviewError::Lifecycle(
-            "message_router bridge pending (T7)".into(),
-        ))
+        // T7: global registry keyed by the D17 capability name; the browser-side
+        // Dispatcher routes window.cefQuery({m}) to it. Name validated here.
+        if !name.starts_with("omnilet.") || name.len() < "omnilet.x.y".len() {
+            return Err(WebviewError::Lifecycle(format!(
+                "bridge name {name:?} violates D17 omnilet.<capability>.<method>"
+            )));
+        }
+        let shared: crate::bridge::SharedBridge = std::sync::Arc::from(handler);
+        self.bridges.push((name.to_string(), shared.clone()));
+        match bridge_registry().write() {
+            Ok(mut reg) => {
+                reg.insert(name.to_string(), shared);
+                Ok(())
+            }
+            Err(_) => Err(WebviewError::Lifecycle("bridge registry poisoned".into())),
+        }
     }
 
     fn on_event(&mut self, callback: Box<dyn Fn(WebviewEvent) + Send>) {

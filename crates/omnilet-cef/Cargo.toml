@@ -9,6 +9,8 @@ license.workspace = true
 # argv trips Chromium's command-line CHECK — crash-witnessed 2026-10-19,
 # SDD CEF-01 addendum).
 [dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 cef = "154"
 omnilet-webview = { path = "../omnilet-webview" }
 omnilet-protocol = { path = "../omnilet-protocol" }

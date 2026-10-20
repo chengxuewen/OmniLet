@@ -25,7 +25,7 @@
 - [x] **T6 omnilet:// scheme handler via omnilet-protocol** ✅ scheme-flags boot registration + manager directory provider + RRH pass-through counter; lifecycle example painted=true offline_served=1; SDD CEF-06 (string-type archaeology footnote recorded to stop re-tripping)
   - resource.rs registers scheme (browser-process once) + per-browser handler serves via `resolve()`; miss → 404 + audit line
   - Verify: unit tests (resolve mapping reuses protocol crate's 4 green tests as source truth); integration: demo HTML loads via omnilet:// (T2 harness extended)
-- [ ] **T7 eval + register_bridge (message_router adapter, D17 naming)**
+- [~] **T7 eval + register_bridge (message_router adapter, D17 naming)** — PARTIAL, BLOCKED-BY-CEF-BEHAVIOR (SDD CEF-07): registry+dispatcher+responder+browser-side receive all wired & compiling; render-side JS injection lane switched to self-protocol route (frame-execute dead in this combo; process messages + render-local eval verified alive). Acceptance flips green when injection leg lands (V8 factory or fetch-bridge fallback).
   - bridge.rs: JS omnilet.storage.get/set ⇄ cef message_router ⇄ BridgeRequest/Responder ⇄ omnilet-jsengine channel (same StorageRequest plumbing)
   - Verify: round-trip test: demo JS calls storage.set → rquickjs side StorageRequest received → responder answers → JS-visible callback fires (headless-capable via windowless browser + eval assertion)
 

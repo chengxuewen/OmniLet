@@ -50,3 +50,14 @@
 - **预期**：omnilet:// 请求命中 serving 计数（`offline_served()>0` 为链路活性证明，lifecycle example 实测 =1）；`omnilet-protocol::resolve` 的遍历防护语义即 serving 语义（unit 测试双端同源）
 - **边界（cef-rs 154 字符串考古结论，勿再踩）**：`Request::url()` 返回 `CefStringUserfreeUtf16`——**无 as_str/Display**；唯一取串路 `CefStringUtf16::from(&u).as_slice() → String::from_utf16_lossy`（helper `cef_url_str`）。utf8 系才有 as_str
 - **验证**：`examples/cef_lifecycle.rs` LIFECYCLE-RESULT（painted + served 双断言，2026-10-19 实测 `painted=true offline_served=1`）
+
+## CEF-07: browser→render 任务通道行为发现（T7 现场，2026-10-19）
+
+- **实测（headless=new + OSR 软渲染 + external pump + no_sandbox，cef-rs 154.5 / cef 154.0.34 / Linux）**：
+  - `CefFrame::SendProcessMessage`：**活**（双向，channel 送达，canary 实证）
+  - `V8Context::eval`（render 本地）：**活**（retval 可读，typeof 实测回传）
+  - `CefFrame::ExecuteJavaScript`（browser 发起）：**不发**（同 IPC 底座上无效果；was_hidden/set_focus 唤醒无效；脚本 url 有/无均无效）
+  - cef-rs message_router wrapper `on_context_created`：调用无 panic，但 `window.cefQuery` 未出现（与 execute_js 同域受害，wrapper 路线未走通）
+- **决定**：omnilet 桥协议**自建于已验证通道**（process message 双向 + render 本地 V8Context::eval 回调派发），不依赖 frame-execute，暂不依赖 message_router wrapper；V8 函数注入 leg 待 cef-rs V8 factory 辅助可用性核实（无 helper 则退 fetch 型桥：omnilet://__bridge XHR，RRH 同步应答）
+- **验证面**：lifecycle example bridge 段保持"expected-blocked"形态（hits=0 不算失败），协议 lane 落地后翻绿为正式门禁
+- **附**：PAGE-PIXEL 证明形态保留（offline 页中心像素精确匹配供带内容 = 端到端内容验证，T6 强化）

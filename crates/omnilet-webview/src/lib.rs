@@ -56,7 +56,7 @@ impl BridgeResponder {
     }
 }
 
-pub type BridgeHandler = Box<dyn Fn(BridgeRequest) + Send>;
+pub type BridgeHandler = Box<dyn Fn(BridgeRequest) + Send + Sync>;
 
 /// Per-request verdict from the security filter (D8-3: the trait-level enforcement point —
 /// without this hook, whitelist is documentation, not mechanism).
