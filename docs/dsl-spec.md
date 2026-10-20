@@ -83,3 +83,4 @@
 - 登记格式：`omnilet.<capability>.<method>`（不合规名字注册即拒）。
 - **一个词三处用**：capability 段 = manifest 权限声明词 = 授权判定词 = 审计日志词，零映射表。
 - 业务观感对齐 `chrome.<api>.<method>` 词形；wx.* 兼容面为独立产品策略议题（未裁）。
+- **首落地词**：`storage`（`omnilet.storage.get/set`，T7 桥注册；派发/接收路已实测活，JS-可见腿待 CEF-07 注入裁决——见 SDD CEF-07）。

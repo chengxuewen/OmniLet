@@ -43,7 +43,7 @@
 
 ## Phase 4: Docs + memory
 
-- [ ] **T11 SDD CEF-01.. clauses + memory sync**
+- [x] **T11 SDD CEF-01.. clauses + memory sync** ✅ 2026-10-20: SDD CEF-01..09（本轮补 08 OSR-gpu-compositing / 09 cage）；D19 证据索引落 decisions（glibc/runtime-set/pump 槽位不重复数字防漂移）；dsl-spec §9 首落地词=storage 注记；status next-slice 候选（binary envelope / HMI-Renderer / doc-audit）；root AGENTS.md 刷新（zero-source 时代文本过时 7 处 → slicing 现状，COMMANDS 换真 gate 命令）；decisions D18 标题粘连修复
   - SDD from landed behavior (pump contract/scheme/bridge/cage/crash-domain); decisions.md: T1-T3 findings (glibc, runtime set, pump numbers) + any contract-extension-slot additions recorded as evidence; status.md next-slice (binary envelope perf / winmac-wry / HMI-Renderer consumer); dsl-spec §9 note: capability word first lands = storage
   - Verify: doc-audit quick paths (instructions, refs); report
 

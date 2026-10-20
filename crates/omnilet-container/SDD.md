@@ -68,3 +68,10 @@
 - **规则**：`on_before_command_line_processing` 必须 `append_switch("disable-gpu-compositing")`（与 CEF-02 双开关并列）。
 - **症状签名**：GPU 合成器提交面与 OnPaint 缓冲不同块内存——OnPaint 收**全帧 alpha=0 的透明黑**或闪烁白帧；alpha 非 0 像素计数 = 0 是本征指纹（中心采样不够，别信单点）。
 - **实测**：加开关后导航清屏白闪消失；像素 proof 稳定。
+
+## CEF-09: cage — nav/resource/popup 三闸 fail-closed（2026-10-20 T8 落地）
+
+- **操作**：`on_before_browse`（top-nav 白名单外 → return 1 + audit 行）、`on_before_resource_load`（子资源 out-of-list → block）、`OnQuery`（popup → deny + audit）三闸接 D13 默认策略；决策层 = `cage.rs` 纯逻辑（decide_navigation/resource/popup + audit），零 CEF 依赖。
+- **预期**：改策经 `set_request_filter`/`set_navigation_policy`（WebViewBackend trait 面）→ cage.rs 单点读写；闸判定跑在 read 锁内（并发纪律同 bridge registry）。
+- **边界**：audit 行 = 进程 stderr 一行制（layer+kind+URL+reason）；结构化审计总线属 console 侧切片，不在本层。
+- **验证**：`cargo test -p omnilet-cef`（4 decide/audit case 绿）；live 面 = lifecycle example 无 popup/越闸导航误伤（rc=0 全程）。

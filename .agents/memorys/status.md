@@ -28,6 +28,7 @@
 1. cef-backend plan: T1-T6/T8-T10 done (pixel-green proof + PolyOrch lane with breakage-probe). Next T11 docs-closeout; then T7 injection-leg decision (V8 factory vs fetch-bridge, per C1 options table)
 2. T7 bridge lane stays expected-blocked (CEF-07); injection leg = V8 factory or fetch-bridge fallback (own decision when opened)
 3. Renderer interface consumers: winmac-wry slice (D18: wry-Linux retired; win/mac keep wry)
+4. Post-T7 slice candidates: binary-envelope perf measurement (mvp-checklist) / HMI-Renderer consumer contract check / doc-audit quick pass
 
 ## Open items (doc-audit 2026-10-16 register — each with its trigger)
 

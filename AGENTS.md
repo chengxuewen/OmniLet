@@ -1,10 +1,10 @@
 # PROJECT KNOWLEDGE BASE
 
-**Generated:** 2026-10-16 (audit refresh) | **Branch:** master (aac1170; bootstrap f19490b)
+**Generated:** 2026-10-20 | **Branch:** master (2f0f6cc; bootstrap f19490b)
 
 ## OVERVIEW
 
-OmniLet（万应）— multi-end light-app container platform ("compile-time multi-end + runtime container"). Currently **design-phase, zero source code**: definition docs + adjudicated stack + build orchestrator + agent toolchain. Stacks all decided: engine/container = **Rust dual-mode** (D3), compile-side = table-driven compiler + monorepo (D5), console = TS full-stack + 4-tier test matrix (D6), build = PolyOrch submodule (D7). Next: scaffold.
+OmniLet（万应）— multi-end light-app container platform ("compile-time multi-end + runtime container"). **Scaffolded and slicing**: Rust workspace under `crates/` (contract crates + omnilet-cef/omnilet-container live), CEF-Backend Linux standard-mode slices T1-T6/T8-T10 green (pixel-proved offline serving + PolyOrch lane), agent toolchain + PolyOrch assembly in place. Stacks all decided: engine/container = **Rust dual-mode** (D3, Linux standard = CefBackend per D16/D18), compile-side = table-driven compiler (D5), console = TS full-stack (D6), build = PolyOrch submodule (D7). Next: T7 injection-leg decision, then compile-side slices.
 
 ## STRUCTURE
 
@@ -18,6 +18,9 @@ OmniLet/
 ├── cmake/             # OmniLetPolyOrch.cmake (sentinel + scaffold wiring placeholders)
 ├── PolyOrch/          # build orchestrator (git submodule gitee @5945f2a, D7; rust+node faces wire at scaffold)
 ├── pixi.toml + pixi.lock      # D11 environment single-source (rust+node+pnpm, locked)
+├── Cargo.toml + Cargo.lock    # rust workspace (members under crates/)
+├── crates/                    # contract crates (render/webview/patch/channel/protocol/jsengine/cage) + omnilet-cef (CefBackend) + omnilet-container (bin) + omnilet-cli
+├── examples/demo-app/         # offline-package sample (manifest.json + index.html)
 ├── docs/              # ALL project knowledge lives here (see docs/AGENTS.md)
 │   ├── whitepaper.md          # product definition v1.0.1 (verbatim user text + errata, D2)
 │   ├── tech-whitepaper.md     # engine tech V4.0.1 (Rust dual-mode, engine matrix, flavor-split metrics, D3+D5)
@@ -46,28 +49,37 @@ OmniLet/
 | MVP done-definition | `docs/mvp-checklist.md` | 20 acceptance + 7 exclusions; entry change = new decision |
 | DSL contract (template/units/negative list) | `docs/dsl-spec.md` | skeleton at scaffold; grows with compiler slices |
 | Dev shell (B0) spec | `docs/devtools-spec.md` | winit+wry+wgpu shell; automator driver contract |
-| Past decisions | `.agents/memorys/decisions.md` | append-only, D1-D7 (+addenda) |
+| Past decisions | `.agents/memorys/decisions.md` | append-only, D1-D19 (D19 = cef slice evidence index) |
+| CEF runtime contracts (boot/serving/OSR/cage) | `crates/omnilet-container/SDD.md` | CEF-01..09; single source for landed behavior |
+| Current plan status (cef-backend) | `.sisyphus/plans/cef-backend/tasks.md` | T1-T6/T8-T10 done; T7 blocked (CEF-07) |
 | Pitfalls | `.agents/memorys/pitfalls.md` + `rules/common/edit-safety.md` | append-only / live rules |
 
 ## CONVENTIONS (this project only)
 
 - **Docs are the product right now**: any substantive doc change must be reflected in `.agents/memorys/status.md` the same turn (C9).
-- **Decision numbering**: D{n} sequential in `decisions.md`; D1-D3 = user rulings, D4 = research-artifact log, D5/D6/D7 = user rulings (compile-side/console+tests/build orchestrator). All stack decisions CLOSED; next decision opens only with scaffold findings.
-- **No stack assumptions**: opencode.json still loads rust LSP/rules — correct per D3 but inert until Rust files exist. Do not prune or extend until D5 lands.
+- **Decision numbering**: D{n} sequential in `decisions.md`; user rulings D1-D3/D5-D8/D11-D18, research-artifact logs D4/D19. Stack decisions CLOSED; slice findings go to SDD/PIT, new rulings only for real forks (e.g. T7 injection leg).
+- **No stack assumptions without measurement**: opencode.json loads rust LSP/rules (correct per D3); cef-rs API signatures are read from vendored bindings before use (#22 discipline, never from memory).
 - **Reference profiles**: numbers must be same-day measured; unverifiable claims get `*UNCERTAIN*` markers; every 借鉴点 maps to an OmniLet module.
 
 ## ANTI-PATTERNS (THIS PROJECT)
 
 - NEVER cite predecessor numbering (VisiaEngine C15-C24 / D1-D25 / PIT-{n}) as if it lived in this repo's stores — archives are at `.refinfo/VisiaEngine/`, methodology citations OK.
 - NEVER edit `docs/whitepaper.md` content silently — it is verbatim user ruling (D2); propose changes as decisions first.
-- NEVER start implementing before D5: no repo scaffold, no crate/package creation, no toolchain installs.
+- NEVER widen the frozen WebViewBackend trait surface without an explicit decision (ten-method freeze, D12-add4; the two pump slots were earned by hardest-consumer measurement, D19).
 - `.refinfo/` research clones (e.g. `.refinfo/kraken-repo/`, evidence for `docs/reference/kraken.md`) are read-only reference material — do not import, build, or treat as project code.
 
 ## COMMANDS
 
 ```bash
-# No build/test yet — no source. Placeholder until D5 (see status.md).
-grep -rIn 'UNCERTAIN' docs/reference/   # audit unverified claims in reference library
+# Rust gates (pixi single-source env):
+pixi run cargo test --workspace
+pixi run cargo clippy --workspace --all-targets -- -D warnings
+# lifecycle proof (CEF boot; needs debug libcef dir on LD path):
+LD_LIBRARY_PATH=$PWD/target/debug pixi run cargo run -p omnilet-cef --example cef_lifecycle
+# cmake assembly lane (artifact graph edge; gates still run cargo directly):
+pixi run cmake -S . -B cmake-build -G Ninja && pixi run cmake --build cmake-build --target omnilet-container-exe-build
+# docs audit:
+grep -rIn 'UNCERTAIN' docs/reference/
 ```
 
 ## NOTES

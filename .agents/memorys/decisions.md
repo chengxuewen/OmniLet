@@ -270,10 +270,20 @@
 
 ### D17 tooling incident note (self-recorded, edit-safety #27 family)
 
-- First append attempt died on a mismatched heredoc terminator (open `D17EOF` / close `EOF`): the unclosed heredoc swallowed ALL following commands (file writes included) into decisions.md. Recovery: git checkout of the single file (last commit state verified first), redo via edit/write tools. Standing rule reinforced: multi-file command sequences MUST NOT chain big heredocs; file content goes through write/edit, bash runs commands only.## D18: CefBackend pulled forward — Linux line goes straight to final form (2026-10-19, user ruling)
+- First append attempt died on a mismatched heredoc terminator (open `D17EOF` / close `EOF`): the unclosed heredoc swallowed ALL following commands (file writes included) into decisions.md. Recovery: git checkout of the single file (last commit state verified first), redo via edit/write tools. Standing rule reinforced: multi-file command sequences MUST NOT chain big heredocs; file content goes through write/edit, bash runs commands only.
+
+## D18: CefBackend pulled forward — Linux line goes straight to final form (2026-10-19, user ruling)
 
 - **Move**: with this dev host on Ubuntu 20.04 (wry/GTK4.1 path uncompilable — D16 transitional lane is moot HERE), the Linux container line skips the Wry transitional and implements **CefBackend directly as the first real WebViewBackend consumer**. WryBackend drops to a Win/Mac-platform slice (Linux wry branch retired per D16; no permanent dual path).
 - **Bonus rationale**: contract checked against its hardest consumer first (multi-process/OSR/message-pump) — passing that makes the ten-method freeze real, not theoretical.
 - **Dependencies stay pixi single-source (no apt, no sudo)**: gtk3 3.24.52 (conda gtk3 ships headers+.pc — the "dev" split is a Debian habit, conda doesn't have it), cmake 4.4.4, ninja 1.13.2; verified in-env: pkg-config sees gtk+-3.0, conda cmake shadows system cmake (3.31 leak closed). D11 philosophy extended: system-level build deps belong in pixi.lock too.
 - **Spike first-verify list (CEF runtime realities, recorded as risks)**: (1) runtime .so completeness (X11 composites/GBM/ALSA — CEF distro bundles Chromium libs; missing ones land in pixi as needed, enumerate via ldd at boot); (2) sandbox helper SUID — standard --no-sandbox posture for containerized/dev hosts, recorded as deliberate: our SECURITY sandbox lives in omnilet layer (D8/D5-add5), CEF's process sandbox = its internal knob not our promise; (3) OSR damage→texture path shape for WebViewParent payload convention (D12-add4 card 2 payload ②).
 - **Consequences**: container-core-wry slice REBRANCHED (wry-dependent tasks parked for Win/Mac slice; pure-logic tasks sandbox/demo/protocol stay in play); next planning unit = cef-backend slice (propose→apply); Wry spike question (winit vs tao) re-attaches to whichever backend lands first on a given OS (CEF path needs winit/tao anyway for the window).
+
+
+## D19: cef-backend slice findings evidence log (2026-10-20, T1-T10 landed; research-artifact entry like D4 — not a decision)
+
+- **glibc / runtime set**: Ubuntu 20.04 (glibc 2.31) + CEF 154 dist coexist — measured, no 2.34 wall for CEF (that wall was WebKitGTK/libsoup-specific, D16). The ldd closure (30+ .so) and desktop-minimal sufficiency live in SDD CEF-04; the conda webkit2gtk-4.1 route is formally dead (CEF-04 边界).
+- **pump numbers**: external-pump shape (CEF-01) — frame arrival measured within the lifecycle example's 40×2ms `pump_drive` bound; **contract extension slots actually exercised**: WebViewBackend gained `pump_drive`/`pump_timeout` (omnilet-webview lib.rs:119/123) — the ten-method freeze plus two pump slots, decided by D18's hardest-consumer measurement, not paper.
+- **behavior findings**: `ExecuteJavaScript` dead under headless OSR (SDD CEF-07, canary-proved); OSR black-frame signature = whole-frame alpha=0 (SDD CEF-08); `cef_response.mime_type` bare-type contract (PIT-1) + no URL-escaping inside file content (PIT-2).
+- **contract lane authority**: SDD CEF-01..09 is the single source of truth for landed behavior; this entry is an index — numbers/pump shapes are NOT duplicated here to prevent drift.
