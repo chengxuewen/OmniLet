@@ -1393,6 +1393,7 @@ name = "omnilet-cef"
 version = "0.1.0"
 dependencies = [
  "cef",
+ "omnilet-protocol",
  "omnilet-webview",
 ]
 

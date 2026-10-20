@@ -49,6 +49,25 @@ fn main() -> std::process::ExitCode {
     }
     let painted = backend.painted();
 
+    // --- T6 offline serving lane ---
+    let demo = std::env::temp_dir().join(format!("omnilet-demo-{}", std::process::id()));
+    std::fs::create_dir_all(&demo).unwrap();
+    std::fs::write(
+        demo.join("index.html"),
+        b"<html><body style='background:%2300aa44'><h1>omnilet T6 offline</h1></body></html>",
+    )
+    .unwrap();
+    backend.load_offline_dir(&demo).expect("load_offline_dir");
+    for _ in 0..400 {
+        backend.pump_drive();
+        std::thread::sleep(Duration::from_millis(5));
+        if backend.offline_served() > 0 {
+            break;
+        }
+    }
+    let served = backend.offline_served();
+    let _ = std::fs::remove_dir_all(&demo);
+
     backend
         .resize(Bounds { x: 0, y: 0, width: 1024, height: 768 })
         .expect("resize");
@@ -59,8 +78,8 @@ fn main() -> std::process::ExitCode {
         std::thread::sleep(Duration::from_millis(2));
     }
 
-    println!("LIFECYCLE-RESULT painted={painted}");
-    if painted {
+    println!("LIFECYCLE-RESULT painted={painted} offline_served={served}");
+    if painted && served > 0 {
         std::process::ExitCode::SUCCESS
     } else {
         std::process::ExitCode::FAILURE

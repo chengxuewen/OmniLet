@@ -22,7 +22,7 @@
 
 ## Phase 2: Loading + bridge (contract flesh)
 
-- [ ] **T6 omnilet:// scheme handler via omnilet-protocol**
+- [x] **T6 omnilet:// scheme handler via omnilet-protocol** ✅ scheme-flags boot registration + manager directory provider + RRH pass-through counter; lifecycle example painted=true offline_served=1; SDD CEF-06 (string-type archaeology footnote recorded to stop re-tripping)
   - resource.rs registers scheme (browser-process once) + per-browser handler serves via `resolve()`; miss → 404 + audit line
   - Verify: unit tests (resolve mapping reuses protocol crate's 4 green tests as source truth); integration: demo HTML loads via omnilet:// (T2 harness extended)
 - [ ] **T7 eval + register_bridge (message_router adapter, D17 naming)**

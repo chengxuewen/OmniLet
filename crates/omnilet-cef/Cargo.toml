@@ -11,6 +11,7 @@ license.workspace = true
 [dependencies]
 cef = "154"
 omnilet-webview = { path = "../omnilet-webview" }
+omnilet-protocol = { path = "../omnilet-protocol" }
 
 [lints]
 workspace = true

@@ -43,3 +43,10 @@
 - **预期**：OmniLet 的安全承诺**始终且仅仅**在 omnilet 层（D8 链条：签名 fail-closed / 权限三层 / 白名单过滤器 / 渲染进程崩溃域隔离）；CEF 进程沙箱是它的内部加固选项，**不是也不被当作**产品的安全边界
 - **边界**：将来若启用 CEF sandbox feature（分发安全审计要求），独立决策不在此改
 - **验证**：Settings 字段构造 + 本条款评审记录
+
+## CEF-06: offline serving lane（目录级离线包供带）
+
+- **操作**：`load_offline_dir(dir)` → 全局 `ResourceManager` 注册 `add_directory_provider("omnilet://app", dir, 0, "omnilet-app")`（同 id 重入 = 替换）→ `navigate("omnilet://app/index.html")`；scheme 在 boot 时注册（STANDARD|LOCAL|SECURE|CORS 位组合，CEF-01 时序）
+- **预期**：omnilet:// 请求命中 serving 计数（`offline_served()>0` 为链路活性证明，lifecycle example 实测 =1）；`omnilet-protocol::resolve` 的遍历防护语义即 serving 语义（unit 测试双端同源）
+- **边界（cef-rs 154 字符串考古结论，勿再踩）**：`Request::url()` 返回 `CefStringUserfreeUtf16`——**无 as_str/Display**；唯一取串路 `CefStringUtf16::from(&u).as_slice() → String::from_utf16_lossy`（helper `cef_url_str`）。utf8 系才有 as_str
+- **验证**：`examples/cef_lifecycle.rs` LIFECYCLE-RESULT（painted + served 双断言，2026-10-19 实测 `painted=true offline_served=1`）
