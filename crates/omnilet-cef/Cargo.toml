@@ -1,0 +1,16 @@
+[package]
+name = "omnilet-cef"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# CefBackend: the Linux standard-mode engine (D16/D18 final form).
+# Lifecycle proof = examples/ (in-process cargo test impossible: libtest
+# argv trips Chromium's command-line CHECK — crash-witnessed 2026-10-19,
+# SDD CEF-01 addendum).
+[dependencies]
+cef = "154"
+omnilet-webview = { path = "../omnilet-webview" }
+
+[lints]
+workspace = true

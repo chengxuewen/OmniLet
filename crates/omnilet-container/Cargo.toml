@@ -18,7 +18,7 @@ omnilet-channel = { path = "../omnilet-channel" }
 omnilet-patch = { path = "../omnilet-patch" }
 omnilet-jsengine = { path = "../omnilet-jsengine" }
 omnilet-protocol = { path = "../omnilet-protocol" }
-cef = "154"
+omnilet-cef = { path = "../omnilet-cef" }
 winit = "0.30"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

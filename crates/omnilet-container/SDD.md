@@ -11,7 +11,8 @@
 - **边界**（全部 crash-witnessed）：
   - api_hash 前调 `cef_command_line_create` → 内部 wrap null → immediate_crash（SIGTRAP）
   - execute_process 传 `None` app → `CefApp_CToCpp invalid version -1` crash（cef-rs examples/osr 的 Some(&mut app) 写法是规范形）
-- **验证**：spike `examples/cef_spike.rs`（本条款即其提炼）
+- **验证**：`omnilet-cef/examples/cef_lifecycle.rs`（contract-API 全生命周期，2026-10-19 painted=true）
+- **补充（2026-10-19 crash-witnessed）**：**进程内 cargo test 不可用**——libtest 的 `--ignored/--test-threads` 等参数会被 Chromium 命令行解析器 CHECK 崩溃（`Unrecognized option: 'type'` + SIGTRAP）。CEF 生命周期验证**只能走独立进程 example**；test-matrix T1 对 omnilet-cef 的覆盖 = 编译/纯函数层，行为验证在 example lane（CI 自动化 = 未来 CEF-CI 切片，runner 需 pixi 依赖 + `cargo run --example`）
 
 ## CEF-02: headless-launch（无 X 启动合同）
 

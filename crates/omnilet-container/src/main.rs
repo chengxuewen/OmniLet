@@ -5,10 +5,8 @@
 //! watch + CDP — window/WebView wiring lands with renderer.rs in this
 //! crate's next task).
 //!
-//! Compile-environment note (D16 transitional, same reality as this dev
-//! host's Ubuntu 20.04): building needs webkit2gtk-4.1 dev packages on
-//! Linux — CI installs them (ci.yml); local full builds wait for the
-//! Docker/22.04 env or `--exclude omnilet-container`.
+//! Engine lane: D18/D16 — Linux standard mode is CefBackend (cef_engine),
+//! no webkit2gtk dependency at all; wry belongs to the future winmac slice.
 
 fn main() {
     std::process::exit(run(std::env::args().collect()));

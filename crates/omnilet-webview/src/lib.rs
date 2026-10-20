@@ -109,6 +109,20 @@ pub trait WebViewBackend: Send {
     // ---- security hooks (D8-3 / invariant ⑤ enforcement surface) ----
     fn set_request_filter(&mut self, filter: RequestFilter);
     fn set_navigation_policy(&mut self, policy: NavigationPolicy);
+
+    // ---- extension slots (D12-add4 discipline; entries = real-backend findings) ----
+
+    /// Drive one round of a pump-driven backend's internal message loop
+    /// (CEF/OSR family needs this; wry integrates into the host event loop
+    /// and keeps the no-op default). Returns true if work happened.
+    /// Slot entry #1: CefBackend boot check, 2026-10-19.
+    fn pump_drive(&mut self) -> bool {
+        false
+    }
+    /// Pacing hint for the host pump loop (None = no self-timed work).
+    fn pump_timeout(&self) -> Option<std::time::Duration> {
+        None
+    }
 }
 
 #[derive(Debug, thiserror::Error)]

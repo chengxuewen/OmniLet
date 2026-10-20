@@ -13,10 +13,10 @@
 
 ## Phase 1: Contract skeleton (pure, testable without window)
 
-- [ ] **T4 CefBackend ten-method skeleton + pump design note**
+- [x] **T4 CefBackend ten-method skeleton + pump design note** ✅ crate omnilet-cef (extraction learning: engine=lib crate); contract extension slots FIRST ENTRIES pump_drive/pump_timeout (D18-predicted contract check #1)
   - File: src/cef/mod.rs (methods stubbed, types real), pump.rs sketch (timeout math + wakeup channel)
   - Verify: compiles; omnilet-webview contract mock-suite passes against stubs (type-level proof the contract is implementable)
-- [ ] **T5 create/resize/destroy real (native child window)**
+- [x] **T5 create/resize/destroy real (OSR lane)** ✅ cef_lifecycle example green (painted=true, pure-contract API); real-window variant = winmac lane; OSR invalidate+view_rect resize = osr-example mechanism; destroy via host.close_browser(1)
   - WindowInfo from WebviewParent winit-window payload; SetBounds on resize; destroy closes browser, loop exit clean
   - Verify: T2 probe upgraded to winit window (X11) if display available; headless: unit-assert lifecycle order errors (submit-before-attach analog)
 

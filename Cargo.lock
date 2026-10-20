@@ -1389,6 +1389,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "omnilet-cef"
+version = "0.1.0"
+dependencies = [
+ "cef",
+ "omnilet-webview",
+]
+
+[[package]]
 name = "omnilet-channel"
 version = "0.1.0"
 dependencies = [
@@ -1400,7 +1408,7 @@ dependencies = [
 name = "omnilet-container"
 version = "0.1.0"
 dependencies = [
- "cef",
+ "omnilet-cef",
  "omnilet-channel",
  "omnilet-jsengine",
  "omnilet-patch",
