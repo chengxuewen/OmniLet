@@ -8,12 +8,18 @@ license.workspace = true
 name = "omnilet-container"
 path = "src/main.rs"
 
-# wry comes back WITH renderer.rs (needs webkit2gtk-4.1 build env; D16
-# transitional: this host is 20.04 — that env arrives with the Docker/22.04 lane)
+# T1/D18: Linux final-form engine via cef-rs (tauri-apps). no-sandbox is cef-rs's
+# default posture; security promises live at the omnilet layer (D8 chain) — stance
+# recorded in SDD. wry never returns to Linux (retired per D16; Win/Mac = winmac-wry slice).
 [dependencies]
 omnilet-render = { path = "../omnilet-render" }
-omnilet-protocol = { path = "../omnilet-protocol" }
+omnilet-webview = { path = "../omnilet-webview" }
+omnilet-channel = { path = "../omnilet-channel" }
+omnilet-patch = { path = "../omnilet-patch" }
 omnilet-jsengine = { path = "../omnilet-jsengine" }
+omnilet-protocol = { path = "../omnilet-protocol" }
+cef = "154"
+winit = "0.30"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"

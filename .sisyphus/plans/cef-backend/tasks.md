@@ -1,0 +1,53 @@
+# Tasks: cef-backend
+
+## Phase 0: Spike (reality check on THIS 20.04 host — D18's premise)
+
+- [x] **T1 build chain end-to-end** ✅ pixi gtk3/cmake/ninja + cef-rs 154 full-chain green on 20.04 (rust bumped 1.97 via lock migration — ecosystem MSRV)
+  - Add cef="154" + winit="0.30" to omnilet-container; `pixi run cargo check -p omnilet-container`
+  - Verify: download-cef fetches distro, cef-sys assembles via pixi cmake/ninja, check green. Record: download size/time, any pkg-config misses (→ pixi additions). If glibc floor breaks → STOP, report (older-CEF-pin decision).
+- [x] **T2 first-frame probe** ✅ SPIKE-RESULT painted=true nonblack=1924 (headless software OSR, zero X; four boot landmines → SDD CEF-01/02)
+  - Minimal main: init CEF (no-sandbox), create_browser windowless → OnPaint → write PNG; assert file exists + non-black pixels (pure-fn sample check, minimal gate form). Optional X11 window variant if DISPLAY available.
+  - Verify: PNG proof committed to spike notes (path noted, file itself throwaway); zombie-process check after shutdown (ps count)
+- [x] **T3 runtime dependency census** ✅ ldd-clean on 20.04 (30+ libs, desktop base satisfies; minimal-image list → CEF-04)
+  - ldd the running CEF stack; missing shared libs → pixi.toml additions; SDD records the final runtime set. no-sandbox posture stated in SDD (our security = omnilet layer).
+
+## Phase 1: Contract skeleton (pure, testable without window)
+
+- [ ] **T4 CefBackend ten-method skeleton + pump design note**
+  - File: src/cef/mod.rs (methods stubbed, types real), pump.rs sketch (timeout math + wakeup channel)
+  - Verify: compiles; omnilet-webview contract mock-suite passes against stubs (type-level proof the contract is implementable)
+- [ ] **T5 create/resize/destroy real (native child window)**
+  - WindowInfo from WebviewParent winit-window payload; SetBounds on resize; destroy closes browser, loop exit clean
+  - Verify: T2 probe upgraded to winit window (X11) if display available; headless: unit-assert lifecycle order errors (submit-before-attach analog)
+
+## Phase 2: Loading + bridge (contract flesh)
+
+- [ ] **T6 omnilet:// scheme handler via omnilet-protocol**
+  - resource.rs registers scheme (browser-process once) + per-browser handler serves via `resolve()`; miss → 404 + audit line
+  - Verify: unit tests (resolve mapping reuses protocol crate's 4 green tests as source truth); integration: demo HTML loads via omnilet:// (T2 harness extended)
+- [ ] **T7 eval + register_bridge (message_router adapter, D17 naming)**
+  - bridge.rs: JS omnilet.storage.get/set ⇄ cef message_router ⇄ BridgeRequest/Responder ⇄ omnilet-jsengine channel (same StorageRequest plumbing)
+  - Verify: round-trip test: demo JS calls storage.set → rquickjs side StorageRequest received → responder answers → JS-visible callback fires (headless-capable via windowless browser + eval assertion)
+
+## Phase 3: Cage + wiring (security hooks armed)
+
+- [ ] **T8 set_request_filter + set_navigation_policy (D13 defaults)**
+  - handler.rs: subframe/resource requests → single-point filter (registered RequestFilter); popup open → deny+audit; top-nav off-list → block+audit (D13-2 cage table lives HERE first)
+  - Verify: pure-decision unit tests (allow/block/audit-row) + one live check: page trying window.open → denied (JS-side sees nothing; audit log has line)
+- [ ] **T9 container main → real `--dir` path**
+  - Replace stub: demo-app loads, first frame, one bridge round-trip on launch; `--help` unchanged
+  - Verify: scripted smoke (windowed manual = T3-honesty note; headless CI: --dir validation tests exist already, extend with render proof flag)
+- [ ] **T10 PolyOrch lane + gates**
+  - CMakeLists: polyorch_rust_build B omnilet-container; clippy -D warnings workspace (now incl. cef crate); test-matrix T1 rows still green
+  - Verify: `cmake --build` builds bin through rust face (breakage probe: break CEF call → cmake names it)
+
+## Phase 4: Docs + memory
+
+- [ ] **T11 SDD CEF-01.. clauses + memory sync**
+  - SDD from landed behavior (pump contract/scheme/bridge/cage/crash-domain); decisions.md: T1-T3 findings (glibc, runtime set, pump numbers) + any contract-extension-slot additions recorded as evidence; status.md next-slice (binary envelope perf / winmac-wry / HMI-Renderer consumer); dsl-spec §9 note: capability word first lands = storage
+  - Verify: doc-audit quick paths (instructions, refs); report
+
+## Executor notes
+- source-driven: cef-rs API read from vendored source/examples per task (no from-memory coding — #22 discipline)
+- every T* commits with its verification output quoted (ponytail: no unverified done)
+- pixel/pump numbers land in SDD notes, not folklore
