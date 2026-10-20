@@ -16,6 +16,22 @@ omnilet_ensure_polyorch_rust()     # D11: pixi-routed rust face (pixi.toml singl
 # ---- lanes --------------------------------------------------------------
 # Rust lanes register through polyorch_rust_build (cargo owns them; no add_subdirectory).
 # JS lanes build through the node face / pnpm (added when compiler packages land).
+
+# T10 (cef-backend): container bin lane — cargo builds the artifact, cmake owns
+# the graph edge + imported target (<name> mediates, <name>-build is the rule).
+# TRIGGER GRANULARITY (measured 2026-10-20): the host-layer cargo rule depends
+# on the MANIFEST only — cargo owns incremental, and src edits alone do not
+# re-invoke it. CI gates therefore run clippy/test through cargo directly
+# (test-matrix T1 rows); this lane is the artifact graph edge, not the checker.
+polyorch_rust_build(
+    TARGET  omnilet-container-exe   # PIT-13 guard: handle != artifact base
+    PACKAGE omnilet-container
+    CRATE   omnilet-container
+    BINARY
+    MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/crates/omnilet-container/Cargo.toml"
+    # reuse the workspace cargo target dir (cef-sys caches its downloaded
+    # dist in target/debug/build/... — a fresh .cargo-target would re-fetch)
+    BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/target")
 #
 # ---- install hooks (later slice) ----
 #   include(cmake/OmniLetInstall.cmake)

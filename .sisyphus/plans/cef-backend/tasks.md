@@ -37,7 +37,7 @@
 - [x] **T9 container main → real `--dir` path** ✅ fail-closed manifest 检查 + headless load-and-prove；实测 `--dir examples/demo-app` → LOADED painted served=1, rc=0（2026-10-20）
   - Replace stub: demo-app loads, first frame, one bridge round-trip on launch; `--help` unchanged
   - Verify: scripted smoke (windowed manual = T3-honesty note; headless CI: --dir validation tests exist already, extend with render proof flag)
-- [ ] **T10 PolyOrch lane + gates**
+- [x] **T10 PolyOrch lane + gates** ✅ 2026-10-20: `polyorch_rust_build(omnilet-container-exe BINARY, BASE_DIR=target 复用缓存)`；PIT-13 guard 首拦（handle≠artifact base）；破坏探针闭环（断 CefBackend::boot → rc=101 点名 boot_BROKEN_PROBE + FAILED 指产物；恢复复绿）；cmake 产物 `--dir` 冒烟 LOADED rc=0。发现记录进 CMakeLists 注释：host-layer cargo 规则触发粒度=MANIFEST（src-only 改动不触发），gate 全走 cargo
   - CMakeLists: polyorch_rust_build B omnilet-container; clippy -D warnings workspace (now incl. cef crate); test-matrix T1 rows still green
   - Verify: `cmake --build` builds bin through rust face (breakage probe: break CEF call → cmake names it)
 
