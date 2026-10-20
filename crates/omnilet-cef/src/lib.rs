@@ -10,12 +10,13 @@ use omnilet_webview::{
     Bounds, BridgeHandler, NavigationPolicy, RequestFilter, WebviewError, WebviewEvent, WebviewParent,
     WebViewBackend,
 };
-use cef::wrapper::resource_manager::ResourceManager;
 use crate::bridge::bridge_registry;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::io::Read;
 use std::sync::{Arc, Mutex, OnceLock};
 
 mod bridge;
+mod cage;
 
 pub use bridge::BOOTSTRAP_JS;
 
@@ -30,12 +31,6 @@ pub fn cef_url_str(u: &CefStringUserfreeUtf16) -> String {
 
 /// Latest painted frame buffer: BGRA bytes + width + height.
 type FrameBuf = (Vec<u8>, i32, i32);
-
-/// Process-wide resource manager (offline directory serving lane, T6).
-fn resource_manager() -> &'static Arc<Mutex<ResourceManager>> {
-    static RM: OnceLock<Arc<Mutex<ResourceManager>>> = OnceLock::new();
-    RM.get_or_init(ResourceManager::new)
-}
 
 /// Process boot state. The App object must outlive CEF (its vtable is
 /// referenced by the C side after initialize — lifetime rule CEF-01):
@@ -89,6 +84,13 @@ wrap_app! {
                     Some(&"ozone-platform".into()),
                     Some(&"headless".into()),
                 );
+                // OSR black-frame gate (windowless contract): GPU compositing
+                // under headless SwiftShader submits to a surface OnPaint never
+                // reads — force software compositing.
+                cl.append_switch(Some(&"disable-gpu-compositing".into()));
+                // standard host posture (osr/cefsimple examples): suppress the
+                // implicit startup browser — the host creates what it needs
+                cl.append_switch(Some(&"no-startup-window".into()));
             }
         }
     }
@@ -202,10 +204,33 @@ wrap_render_handler! {
 // (provider debug_asserts it; we only hand objects over, no thread jumps).
 wrap_resource_request_handler! {
     struct OfflineRrh {
-        serving: ServingState,
+        provider: OfflineProvider,
     }
 
     impl ResourceRequestHandler {
+        // T6 synchronous serving lane (replaced manager async provider which never
+        // completes under external-pump headless — root-caused 2026-10-19):
+        // omnilet://app/<rel> -> resolve (protocol proofs, counted) -> file stream.
+        fn resource_handler(
+            &self,
+            _browser: Option<&mut Browser>,
+            _frame: Option<&mut Frame>,
+            request: Option<&mut Request>,
+        ) -> Option<ResourceHandler> {
+            let url = request.map(|r| cef_url_str(&r.url()))?;
+            let (path, mime) = self.provider.resolve_omnilet(&url)?;
+            // NOTE: cef_response.mime_type accepts the bare type only — a
+            // "; charset=..." suffix fails MIME parsing and Chromium falls
+            // back to text/plain (renders source as one line, no styles).
+            // Charset travels via Response::set_charset in the handler.
+            let mut body = Vec::new();
+            std::fs::File::open(&path).ok()?.read_to_end(&mut body).ok()?;
+            Some(bridge::OfflineResHandler::new(
+                std::sync::Arc::new(body),
+                mime,
+                std::sync::Arc::new(std::sync::Mutex::new(0i64)),
+            ))
+        }
         fn on_before_resource_load(
             &self,
             browser: Option<&mut Browser>,
@@ -216,15 +241,18 @@ wrap_resource_request_handler! {
             let (Some(b), Some(f), Some(r), Some(cb)) = (browser, frame, request, callback) else {
                 return ReturnValue::CONTINUE;
             };
-            // T6 verification surface: count our-scheme requests at the pass-through
+            // T8 gate first (off-list resources never reach further)
             let url = cef_url_str(&r.url());
-            if url.starts_with("omnilet://") {
-                self.serving.served.fetch_add(1, Ordering::Relaxed);
+            if let Ok(c) = crate::cage::cage().read()
+                && let Err(reason) = crate::cage::decide_resource(&url, &c)
+            {
+                crate::cage::audit_blocked("resource", &url, reason);
+                return ReturnValue::CANCEL;
             }
-            match resource_manager().lock() {
-                Ok(mut m) => m.on_before_resource_load(b.clone(), f.clone(), r.clone(), cb.clone()),
-                Err(_) => ReturnValue::CONTINUE,
-            }
+            // omnilet:// rides the synchronous resource_handler lane (counted
+            // inside resolve_omnilet); anything else continues untouched
+            let _ = (&b, &f, &r, &cb);
+            ReturnValue::CONTINUE
         }
     }
 }
@@ -235,6 +263,26 @@ wrap_request_handler! {
     }
 
     impl RequestHandler {
+        fn on_before_browse(
+            &self,
+            _browser: Option<&mut Browser>,
+            _frame: Option<&mut Frame>,
+            request: Option<&mut Request>,
+            _user_gesture: i32,
+            _is_redirect: i32,
+        ) -> i32 {
+            // D13-2 navigation gate (1 = cancel)
+            let Some(url) = request.map(|r| cef_url_str(&r.url())) else {
+                return 0;
+            };
+            let Ok(c) = crate::cage::cage().read() else { return 0 };
+            if let Err(reason) = crate::cage::decide_navigation(&url, &c) {
+                crate::cage::audit_blocked("navigation", &url, reason);
+                return 1;
+            }
+            0
+        }
+
         fn resource_request_handler(
             &self,
             _browser: Option<&mut Browser>,
@@ -263,6 +311,9 @@ wrap_client! {
         fn request_handler(&self) -> Option<RequestHandler> {
             Some(self.request_handler.clone())
         }
+        fn life_span_handler(&self) -> Option<LifeSpanHandler> {
+            Some(bridge::OmniletLsp::new())
+        }
         fn on_process_message_received(
             &self,
             browser: Option<&mut Browser>,
@@ -285,8 +336,6 @@ pub struct CefBackend {
     last_frame: Arc<Mutex<Option<FrameBuf>>>,
     offline_dir: Option<std::path::PathBuf>,
     bridges: Vec<(String, crate::bridge::SharedBridge)>, // registered set (T7 live)
-    filter: Option<RequestFilter>,         // consumed T8
-    policy: NavigationPolicy,              // consumed T8
     event_cb: Option<Box<dyn Fn(WebviewEvent) + Send>>, // consumed T7/T8
 }
 
@@ -373,8 +422,6 @@ impl Default for CefBackend {
             last_frame: Arc::new(Mutex::new(None)),
             offline_dir: None,
             bridges: Vec::new(),
-            filter: None,
-            policy: NavigationPolicy::default(),
             event_cb: None,
         }
     }
@@ -392,7 +439,7 @@ impl WebViewBackend for CefBackend {
             painted: self.painted.clone(),
             last_frame: self.last_frame.clone(),
         };
-        let rrh = OfflineRrh::new(self.serving.clone());
+        let rrh = OfflineRrh::new(OfflineProvider { state: self.serving.clone() });
         let rh = OfflineRh::new(rrh.clone());
         let browser = browser_host_create_browser_sync(
             Some(&WindowInfo {
@@ -444,13 +491,8 @@ impl WebViewBackend for CefBackend {
 
     fn load_offline_dir(&mut self, dir: &std::path::Path) -> Result<(), WebviewError> {
         self.offline_dir = Some(dir.to_path_buf());
-        {
-            let mut m = resource_manager()
-                .lock()
-                .map_err(|_| WebviewError::Navigate("resource manager poisoned".into()))?;
-            m.remove_providers("omnilet-app");
-            m.add_directory_provider("omnilet://app", &dir.display().to_string(), 0, "omnilet-app");
-        }
+        *self.serving.root.lock().map_err(|_| WebviewError::Lifecycle("serving poisoned".into()))? =
+            Some(dir.to_path_buf());
         self.navigate("omnilet://app/index.html")
     }
 
@@ -490,11 +532,15 @@ impl WebViewBackend for CefBackend {
     }
 
     fn set_request_filter(&mut self, filter: RequestFilter) {
-        self.filter = Some(filter); // consumed by handler lane (T8)
+        if let Ok(mut c) = cage::cage().write() {
+            c.filter = Some(filter);
+        }
     }
 
     fn set_navigation_policy(&mut self, policy: NavigationPolicy) {
-        self.policy = policy; // consumed by handler lane (T8)
+        if let Ok(mut c) = cage::cage().write() {
+            c.policy = policy;
+        }
     }
 
     fn pump_drive(&mut self) -> bool {

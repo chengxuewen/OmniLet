@@ -144,6 +144,42 @@ renderer_router().on_context_created(browser.cloned(), frame.cloned(), context.c
     }
 }
 
+// D13-2 popup gate (LifeSpanHandler; default deny + audit — the "host
+// adjudication" approval flow itself lands with the permission-lane slice).
+wrap_life_span_handler! {
+    pub struct OmniletLsp {}
+
+    impl LifeSpanHandler {
+        fn on_before_popup(
+            &self,
+            _browser: Option<&mut Browser>,
+            _frame: Option<&mut Frame>,
+            _popup_id: i32,
+            target_url: Option<&CefString>,
+            _target_frame_name: Option<&CefString>,
+            _target_disposition: WindowOpenDisposition,
+            _user_gesture: i32,
+            _popup_features: Option<&PopupFeatures>,
+            _window_info: Option<&mut WindowInfo>,
+            _client: Option<&mut Option<Client>>,
+            _settings: Option<&mut BrowserSettings>,
+            _extra_info: Option<&mut Option<DictionaryValue>>,
+            _no_javascript_access: Option<&mut i32>,
+        ) -> i32 {
+            // url extraction from the generic CefString param deferred (audit
+            // kind+decision is the load-bearing record): keep the shape honest
+            let _ = target_url;
+            let url = "«popup»";
+            let Ok(c) = crate::cage::cage().read() else { return 0 };
+            if let Err(reason) = crate::cage::decide_popup(&c) {
+                crate::cage::audit_blocked("popup", url, reason);
+                return 1;
+            }
+            0
+        }
+    }
+}
+
 /// Bootstrap JS (D13-4 "channel bootstrap" tier — the full JSSDK ships as a
 /// static resource later; this minimal form already speaks the browser-side
 /// Dispatcher's wire format). `get` carries onSuccess to prove the round-trip.
@@ -158,3 +194,63 @@ window.omnilet.storage = {
   }
 };
 "#;
+
+// ─── T6 serving handler (memory-buffer, synchronous). The StreamResourceHandler
+// path served nothing usable in this combo — root-caused via paint probes
+// 2026-10-19. Real content-length; all callbacks per contract.
+
+wrap_resource_handler! {
+    pub struct OfflineResHandler {
+        body: std::sync::Arc<Vec<u8>>,
+        mime: String,
+        offset: std::sync::Arc<std::sync::Mutex<i64>>,
+    }
+
+    impl ResourceHandler {
+        fn process_request(
+            &self,
+            _request: Option<&mut Request>,
+            callback: Option<&mut Callback>,
+        ) -> i32 {
+            if let Some(cb) = callback {
+                cb.cont();
+            }
+            1
+        }
+        fn response_headers(
+            &self,
+            response: Option<&mut Response>,
+            response_length: Option<&mut i64>,
+            _redirect_url: Option<&mut CefString>,
+        ) {
+            if let Some(r) = response {
+                r.set_status(200);
+                r.set_mime_type(Some(&CefString::from(self.mime.as_str())));
+                r.set_charset(Some(&CefString::from("utf-8")));
+            }
+            if let Some(rl) = response_length {
+                *rl = self.body.len() as i64;
+            }
+        }
+        fn read(
+            &self,
+            data_out: *mut u8,
+            bytes_to_read: i32,
+            bytes_read: Option<&mut i32>,
+            _callback: Option<&mut ResourceReadCallback>,
+        ) -> i32 {
+            let Ok(mut off) = self.offset.lock() else { return 0 };
+            let remain = (self.body.len() as i64 - *off).max(0) as usize;
+            let n = (bytes_to_read as usize).min(remain);
+            if n > 0 && !data_out.is_null() {
+                let src = &self.body[*off as usize..*off as usize + n];
+                unsafe { std::ptr::copy_nonoverlapping(src.as_ptr(), data_out, n) };
+                *off += n as i64;
+            }
+            if let Some(br) = bytes_read {
+                *br = n as i32;
+            }
+            if n > 0 { 1 } else { 0 }
+        }
+    }
+}

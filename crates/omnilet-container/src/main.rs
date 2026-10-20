@@ -12,7 +12,16 @@ fn main() {
     std::process::exit(run(std::env::args().collect()));
 }
 
+use omnilet_webview::{Bounds, WebViewBackend};
+
 fn run(args: Vec<String>) -> i32 {
+    // CEF-01 ordering (live-caught): engine boot (execute_process) runs BEFORE
+    // any CLI parsing — CEF relaunches this binary with --type=zygote/utility
+    // children that must not be judged by the flag parser below.
+    if let Err(e) = omnilet_cef::CefBackend::boot() {
+        eprintln!("error: engine boot failed: {e}");
+        return 1;
+    }
     match args.get(1).map(String::as_str) {
         Some("--help" | "-h") => {
             println!(
@@ -31,8 +40,7 @@ fn run(args: Vec<String>) -> i32 {
                         eprintln!("error: {dir}: no manifest.json (offline package must carry one; fail-closed D8-1)");
                         return 1;
                     }
-                    eprintln!("error: renderer wiring not implemented (container-core-wry Phase 4) — manifest found, would load");
-                    2
+                    load_headless(std::path::Path::new(dir))
                 }
                 _ => {
                     eprintln!("error: --dir expects an existing directory");
@@ -52,6 +60,45 @@ fn run(args: Vec<String>) -> i32 {
             eprintln!("error: no mode given (try --help; --dir <path> is the dev-shell mode)");
             1
         }
+    }
+}
+
+/// Headless load-and-prove lane (B0 full window form lands with the CEF-07
+/// bridge/texture work — this is its CI-usable predecessor): boot, create
+/// OSR backend, load the offline dir, pump to proof, report.
+fn load_headless(dir: &std::path::Path) -> i32 {
+    let mut backend = omnilet_cef::CefBackend::default();
+    let parent = omnilet_webview::WebviewParent(std::sync::Arc::new(0u8));
+    if backend
+        .create(parent, Bounds { x: 0, y: 0, width: 1024, height: 768 })
+        .is_err()
+    {
+        eprintln!("error: backend create failed");
+        return 1;
+    }
+    if backend.load_offline_dir(dir).is_err() {
+        eprintln!("error: offline load failed");
+        backend.destroy().ok();
+        return 1;
+    }
+    let start = std::time::Instant::now();
+    let ok = loop {
+        backend.pump_drive();
+        std::thread::sleep(std::time::Duration::from_millis(5));
+        if backend.painted() && backend.offline_served() > 0 {
+            break true;
+        }
+        if start.elapsed() > std::time::Duration::from_secs(10) {
+            break false;
+        }
+    };
+    backend.destroy().ok();
+    if ok {
+        println!("LOADED {dir:?} painted served={}", backend.offline_served());
+        0
+    } else {
+        eprintln!("error: offline load did not paint within 10s");
+        1
     }
 }
 

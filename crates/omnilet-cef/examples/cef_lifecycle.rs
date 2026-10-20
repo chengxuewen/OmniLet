@@ -54,7 +54,7 @@ fn main() -> std::process::ExitCode {
     std::fs::create_dir_all(&demo).unwrap();
     std::fs::write(
         demo.join("index.html"),
-        b"<html><body style='background:%2300aa44'><h1>omnilet T6 offline</h1></body></html>",
+        b"<html><body style='background:#00aa44'><h1>omnilet T6 offline</h1></body></html>",
     )
     .unwrap();
     backend.load_offline_dir(&demo).expect("load_offline_dir");
@@ -66,6 +66,21 @@ fn main() -> std::process::ExitCode {
         }
     }
     let served = backend.offline_served();
+    // wait for OUR offline page (green #00aa44) to replace the data: page (blue):
+    let mut green = false;
+    let tg = Instant::now();
+    while tg.elapsed() < Duration::from_secs(8) {
+        for _ in 0..40 {
+            backend.pump_drive();
+            std::thread::sleep(Duration::from_millis(2));
+        }
+        if matches!(backend.center_pixel(), Some((0, 170, 68))) {
+            green = true;
+            break;
+        }
+    }
+    let page_pixels_ok = green;
+    println!("OFFLINE-CONTENT proof green={green} pixel={:?}", backend.center_pixel());
     let _ = std::fs::remove_dir_all(&demo);
 
     // --- T7 bridge round-trip ---
@@ -100,11 +115,6 @@ fn main() -> std::process::ExitCode {
 
     backend.eval(omnilet_cef::BOOTSTRAP_JS).expect("bootstrap eval");
     backend.pump_drive();
-    // offline page pixel proof (T6: blue #3366cc of our served index.html)
-    let pixel = backend.center_pixel();
-    let page_pixels_ok = matches!(pixel, Some((51, 102, 204)));
-    println!("PAGE-PIXEL proof center={pixel:?} ok={page_pixels_ok}");
-
     // NOTE T7 (SDD CEF-07): frame-execute dispatch is non-functional in this
     // build combo (headless OSR); the bridge round-trip below is EXPECTED-BLOCKED
     // (hits stay 0) until the process-message protocol lane lands. Kept as the
@@ -149,7 +159,7 @@ fn main() -> std::process::ExitCode {
     println!(
         "LIFECYCLE-RESULT painted={painted} offline_served={served} page_pixels={page_pixels_ok} bridge_hits={bridge_hits} echo_roundtrip={echoed}"
     );
-    if painted && served > 0 && page_pixels_ok {
+    if painted && served > 0 && page_pixels_ok && green {
         std::process::ExitCode::SUCCESS
     } else {
         std::process::ExitCode::FAILURE

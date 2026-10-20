@@ -1,0 +1,16 @@
+{
+ "schemaVersion": 1,
+ "minEngineVersion": "0.1.0",
+ "packageVersion": "0.1.0",
+ "files": [
+  {
+   "path": "index.html",
+   "hash": "sha256:41a70c05d9f7dfab53cde97b3e1950512aa53e0cbd71e4fd8bb3e52865276139",
+   "size": 171
+  }
+ ],
+ "signature": {
+  "algorithm": "ed25519",
+  "value": "ZGVtbw=="
+ }
+}
