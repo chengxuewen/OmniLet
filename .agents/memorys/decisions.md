@@ -295,3 +295,13 @@
 - **降级预案（书面化）**：探针若证明 V8 注册在本组合不可行 → **B**：fetch 传输 + 门面词表协议级改型（api-interface-design 轨）；**C**（供带改写注入）因 D8 整包签名完整性原则性冲突，仅留名不推荐。
 - **影响**：bridge.rs 探针一轮；若 A 通，T7 acceptance（demo storage 往返）直接翻绿，DSL/H5 契约零改动。
 - **Outcome (2026-10-20, 6f18578)**: A confirmed end-to-end — probes showed cefQuery was installed all along (the old "not present" reading came from probing through the DEAD frame-execute leg); the real blockers were the wrapper's BOTH-callbacks requirement (PIT-3) and eval's null-output-slot short-circuit (PIT-4). T7 acceptance green: bridge_hits=3, echo_roundtrip=true. Downgrades B/C unused; eval result-channel (JS value back to browser) stays as the T7+ WebviewEvent extension work, not a blocker.
+
+## D21: 编译侧首切片裁决包——响应式插座 + 混合 DSL 词表 + 端差留位 + 库 API 入口（2026-10-21, user-adjudicated one by one; 3 卡 + 5 形态小裁）
+
+- **背景**：compile-side D5 轨道启动 brainstorming；研究产物 = docs/reference/{mpx,glass-easel,kbone,remax}.md 四档 + dsl-design-space.md 九轴横评（源码级 SHA 证据，uni-app v2/v3 分代实测）。
+- **Card 1 — 响应式引擎 = B 可换插座**：引擎与语法族正交（mpx MobX 跑 Vue 语法判例 + @vue/reactivity 本身即独立包）。插座 = 三原语接口（观察登记/写标脏/回合通知），门面词表恒定（reactive/ref/computed/watch）；标准档插 Vue 引擎，lite 档插最小信号集（后续切片），未来档可原生重写（uni-app x 先例）。纪律：换引擎的语义删减表必须成文、编译期报错，不静默阉割（mpx defineProperty 删减是正例教材）。重开条件无——插座定义即三原语，扩大范围需新裁决。
+- **Card 2 — 属性维端差语法 = A 暂不做**：文件覆写（D9）扛 MVP 端差；"一词之差"复制漂移税未亲身遭遇，不预交语法税。触发器成文：漂移成本 > 语法成本时开新裁决，ol: 词位预留。
+- **Card 3 — 编译器接口 = A 库 API 为主 + 薄 CLI**：compileProject(entry, {target}) 唯一主入口；golden 测试直调不 spawn（容器侧 cef_lifecycle 同哲学）；CLI 参数表标"非冻结，管线定型后定稿"。
+- **形态小裁 ×5**：2a 混挂（v- 核心 + ol: 扩展 + 反丑三纪律：词表互斥/ol: 不入侵基础域/词表交集 CI 红；**重开条件=大版本重构有明确需求**，用户附加条款）；2b @tap 主词 + bindtap 别名；2c 单向性成文；3' 生命周期保留微信原名；4' .omnilet 主 + .vue 兼容输入。
+- **工程红线（研究捞获，非裁决但入库）**：dead-code 消除必须先于任何 Babel 降级（mpx regenerator 破静态消除实证）；不变量"产物零 #ifdef"是顺序保证不是位置保证。
+- **影响**：dsl-spec.md 本切片一并修订（§1 三处残债清 + 三原语接口节 + ol: 命名规范节 + 触发器记录）；omnilet-jsengine crate 契约扩三原语 trait；首切片功能不变（极薄样例、验收=结构+simulate+手工一次）。下一步 = 设计分节呈现 → spec 落盘 → writing-plans。

@@ -8,7 +8,7 @@
 |----|------|
 | Project | OmniLet (万应) — multi-end light-app container platform ("compile-time multi-end + runtime container"); definition = docs/whitepaper.md v1.0 (D2) |
 | Tech stack | **Engine/container = Rust** (D3): standard mode = CefBackend Linux (D18) + wry win/mac (winmac-wry slice); self-built GPU HMI mode (skia-safe/vello + wgpu + taffy), rquickjs/rusty_v8 logic layer, C ABI host integration. Compile-side stack: compiler = table-driven + kernel-replaceable (Babel v1 → SWC v2), MVP targets = WeChat/Web/own-container, monorepo (D5); console = TS full-stack (Node+React+PostgreSQL, monorepo console/), test matrix = 4-tier pyramid + 3 release red-lines (D6) |
-| Docs | whitepaper v1.0 + tech-whitepaper V4.0 + architecture v0.2 + reference/ (16 files: +mpx/glass-easel/kbone/remax 画像 + dsl-design-space 九轴横评综合 2026-10-21) + test-matrix.md (D6) + crates/omnilet-container/SDD.md (CEF-01..10) |
+| Docs | whitepaper v1.0 + tech-whitepaper V4.0 + architecture v0.2 + reference/ (18 files: +mpx/glass-easel/kbone/remax 画像 + dsl-design-space 九轴横评综合 2026-10-21；+uniapp-compiler-internals 编译器内部源码级地图 2026-10-21) + test-matrix.md (D6) + crates/omnilet-container/SDD.md (CEF-01..10) |
 | Source | live workspace: 8 crates (contract render/webview/patch/channel/jsengine/protocol + omnilet-cef with cage.rs + omnilet-container) + TS monorepo cells (compiler/runtime/packages/rule-schema/console, code at zero) — cef slices green (lifecycle example rc=0 pixel-proof, container --dir smoke); PolyOrch submodule + CMake assembly (D7) |
 | Agent toolchain | ported and neutralized from VisiaEngine (D1); rules/rust/ + rust-analyzer now CORRECT per D3; archive at `.refinfo/VisiaEngine/` |
 
@@ -22,6 +22,7 @@
 | 1b compile-side + console + test-matrix decisions | done (D5 + D6) |
 | 2 repo scaffold | done (D10/D11; scaffold-monorepo plan executed) |
 | 3 cef-backend slices (T1-T6/T8/T9) | green 2026-10-20 (072a12b); T7 expected-blocked (CEF-07) |
+| 4 compile-side first slice (D5 track) | brainstorming done 2026-10-21 (D21: engine socket + mixed DSL vocab + lib-API entry); design presentation next |
 
 ## Next steps
 
