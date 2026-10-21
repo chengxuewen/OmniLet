@@ -37,7 +37,7 @@ app.json        页册 + manifest 能力申报（D17 词）
 | 跨文件动态 include | 同上 | 显式 import 组件 |
 | `<iframe>` 标签 | 双渲染路径语义不可对齐（标准模式=iframe / HMI 模式=OSR 实例，行为差异泄漏） | `<web-view src>`（D13-1；自动翻译+告警为 Web 切片起的目标行为，编译器切片 1 = 报错保守版） |
 | `model:` 双向糖 | 单向数据流（2c 裁决；双线程无同步回写通道） | 逻辑层 state 单向赋值 + computed；输入回显走事件 handler |
-| `:class`/`:style` 对象·数组语法 | Vue 全保真 = 运行时归约需求（uni-app v3 教训） | 三元拼字符串或静态 class + script 层切换 class 名 |
+| `:class`/`:style` 对象·数组语法 | Vue 全保真 = 运行时归约需求（uni-app 双代背包 177KB runtime fork 的长尾清单实证） | 三元拼字符串或静态 class + script 层切换 class 名 |
 | v-for 解构三元组 / `:of` 迭代协议 | 微信 wx:for 无对位；静态穷举域外 | `(item, index)` 两元；数据先在 script 层整形 |
 | TS 不可擦除语法（enum/namespace/参数属性） | 类型剥除内核（erasableSyntaxOnly 纪律）不编译它们，降级会产运行时代码破坏"逻辑层纯 TS 即真相" | const 对象字面量 / 顶层函数 |
 | handler 非标识符（内联表达式/成员访问链） | 事件表静态提取的前提 | 具名方法，复杂逻辑进方法体 |

@@ -11,7 +11,7 @@
 
 | 选 | 住法 | 代表（实测证据） |
 |---|---|---|
-| A 编译器 | 差异住**转换管线**，产物是目标端原生代码 | uni-app v2（`mpvue-template-compiler`）、Taro 3 的编译+运行时混合里的编译半区 |
+| A 编译器 | 差异住**转换管线**，产物是目标端原生代码 | uni-app 双代静态翻译半区（运行时 diff 包另计，见 §轴5/internals 档）、Taro 3 的编译+运行时混合里的编译半区 |
 | B 运行时 shim | 差异住**伪造的浏览器/框架环境** | kbone（整层 DOM/BOM 伪造 + `not-support.js`）、Remax（真 React + reconciler 映射） |
 | C 组件框架层 | 差异住**宿主基础库**，框架只是其上的 DSL 皮 | glass-easel（三后端协议，官方基础设施位） |
 | D 自造语言 | 差异住**全新语法** | Chameleon CML（archived，死亡样本） |
@@ -37,7 +37,7 @@
 
 | 选 | 代表 | 后果 |
 |---|---|---|
-| A @vue/reactivity | uni-app（v2/v3） | Vue 生态兼容最好；但引擎体积/语义完整度是隐性税（v3 小程序端被迫挂运行时层——见轴 5） |
+| A @vue/reactivity | uni-app（v2/v3） | Vue 生态兼容最好；但引擎体积/语义完整度是隐性税（uni-app 双代小程序包都把运行时打进产物，177KB/5410 行实测——见轴 5 与 uniapp-compiler-internals.md） |
 | B MobX | mpx | 内核小、可预测；与 Vue computed/watch/hooks 语义有裂口（mpx 靠独立 pinia 包补） |
 | C 信号式自研 | （无主流先例，Solid/信号生态在通用前端） | 与"每 tick 一次 setData"模式天然契合（依赖清单编译期可知） |
 | D 不自建，宿主 setData 直用 | 原生 WeChat | 最薄但无表达力，开发体验断崖 |
@@ -60,9 +60,9 @@
 |---|---|---|
 | A 同步 setData + 用户显式批处理 | glass-easel（"同一个调用栈中立即完成"） | 可推理可调试；批量责任在用户 |
 | B 每 tick 一次自动队列 + 路径 diff | mpx（render-fn 依赖收集 + 路径清单两条，原文全在 runtime.md） | 用户体验最好；框架必须拿到"模板读了哪些路径"的编译期清单 |
-| C 运行时 vdom diff 出 setData | Taro3 / uni-app v3（`uni-mp-vue/src/dom/UniElement + setData` 实测——**DCloud 在 Vue3 线放弃了自家 v2 纯静态**） | setData 量结构性偏大；长列表弱（社区公认）——**这正是 D10-2 点名否决的 Taro 路线的当前形态** |
+| C 运行时 vdom diff 出 setData | Taro3 / uni-app（双代均为"静态翻译 WXML + diff 运行时"，源码级纠正见 uniapp-compiler-internals.md §0） | setData 量结构性偏大；长列表弱（社区公认）——**这正是 D10-2 点名否决的 Taro 路线的当前形态** |
 
-**关键判例（本档最重的一块证据）**：uni-app 的 v2 线 = 静态转 WXML（`mpvue-template-compiler` 实测），v3 线 = 编译器 fork + **运行时 DOM 模拟层 setData**（`src/dom/` 文件树实测）。D10-2 引用的"uni-app 路线"严格说只对 v2 成立。**OmniLet 选静态路线 = 选 uni-app 的老路线**，而 DCloud 自己已迁到混合。这不推翻裁决（我们负面清单砍掉的正是逼他们挂运行时层的"Vue 全语义保真"需求），但设计文档必须**诚实标注这个血缘**——被问"uni-app 都放弃静态了你为什么没"时有据可答：我们不是守旧，是**砍需求买路线**，且 glass-easel（官方，活着）站在同侧。
+**关键判例（本档最重的一块证据，已按源码级深读纠正）**：uni-app **Vue2/Vue3 两条线都是"静态模板翻译到 WXML + 数据 diff 运行时"**（v2 用 `vue-template-compiler` modules 钩子，v3 用 `MiniProgramCompilerOptions` 参数表 + nodeTransforms；两代小程序包各带一份 5,410 行/177KB 的 Vue runtime-core fork——见 uniapp-compiler-internals.md §0/§3）。**真正的"纯静态不可表达"边界是长尾能力清单**（scoped slot / 虚拟节点合并 / 惰性挂载 / DOM 查询 / 表达式过滤器 / 组件 v-show / 挂载时序）——每条长尾都在逼你背包运行时。**OmniLet 的立场因此更清楚：不是"uni-app 放弃了静态"，而是"我们负面清单主动砍掉那 7 类长尾，换取零运行时 fork 的静态产物"**——代价是表达力有界（白名单哲学），收益是产物无引擎税。glass-easel（官方，活着）站在同侧。
 
 **OmniLet 位置**：B（自动队列 + 路径 diff，与 mpx 同型、与双线程不变量4同构），批处理 API 形状参考 glass-easel（`groupUpdates` 类显式口留逃生）。
 
@@ -140,5 +140,5 @@
 - glass-easel @ 574460cf10b9（expr.rs AST/三后端/同步 setData/slot 梯度/样式三件组）——详见 glass-easel.md
 - kbone @ 631432e（DOM/BOM shim 树/1000 节点红线原文）——详见 kbone.md
 - remax @ a7b27ff（turbo-render 静态提取反证）——详见 remax.md
-- uni-app v2/v3 @ 本地克隆 uni-v2/uni-v3（`mpvue-template-compiler`、`uni-mp-vue/src/dom/`——主线程实测）
+- uni-app v2/v3 @ 本地克隆 uni-v2/uni-v3（`mpvue-template-compiler`、`uni-mp-vue/src/dom/`——主线程实测）；深读纠正见 uniapp-compiler-internals.md（spec-review 队源码级产出，SHA c29c15de9430/e3251e663e37 双分支 permalink 钉死）
 - Taro / 原生微信 / Chameleon / QuickApp / Lynx：引既有画像（taro.md / wechat-miniprogram.md / chameleon.md / quickapp.md / lynx.md）

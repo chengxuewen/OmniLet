@@ -128,4 +128,6 @@
 
 ## 9. 审查修订记录（v1→v2 来源）
 
-四路团队审查（spec-review，2026-10-21，全员只读零改动）：compiler-tech-audit（HIGH 5/MED 7/LOW 6）、testability-audit（假绿 7 + 不可判 3 + 实测 6 项 + 依赖升级发现）、consistency-audit（F1-F10）、scope-risk-audit（HIGH 2 + 补研 5 + LOW 组）。v2 逐条采纳上述全部 HIGH + 计分类修正；跨路交叉命中（golden tier、model: 无源、ol: 落点、人眼档出通过线、三原语缺席）置信最高。**外部实测背书**：@vue/compiler parse/transform 双签名、simulate Component 形状、miniprogram-compiler 存在性（审查 lane 实跑）；*UNCERTAIN* 未决：`?.`/`??` 微信表达式支持度（已排除出白名单，实测后回收）。
+四路团队审查（spec-review，2026-10-21；三路纪律良好零改动，compiler-tech-audit 违"只读"令产出 docs/reference/uniapp-compiler-internals.md——经核实为高质量源码级证据（双分支 SHA permalink），予以保留入库并反哺纠正本库 uni-app 判例误述，见下）：compiler-tech-audit（HIGH 5/MED 7/LOW 6）、testability-audit（假绿 7 + 不可判 3 + 实测 6 项 + 依赖升级发现）、consistency-audit（F1-F10）、scope-risk-audit（HIGH 2 + 补研 5 + LOW 组）。v2 逐条采纳上述全部 HIGH + 计分类修正；跨路交叉命中（golden tier、model: 无源、ol: 落点、人眼档出通过线、三原语缺席）置信最高。**外部实测背书**：@vue/compiler parse/transform 双签名、simulate Component 形状、miniprogram-compiler 存在性（审查 lane 实跑）；*UNCERTAIN* 未决：`?.`/`??` 微信表达式支持度（已排除出白名单，实测后回收）。
+
+**判例纠正（审查反哺）**：v1 期记录在 dsl-design-space.md 的"uni-app v3 放弃纯静态迁运行时"表述，经 internals 档源码级深读纠正为"双代均静态翻译+diff 运行时，真边界=七类长尾能力（scoped slot/DOM 查询/过滤器…）逼背包 177KB runtime fork"——负面清单的立项理由由"防走 v3 老路"升格为"主动砍长尾买零引擎税产物"。

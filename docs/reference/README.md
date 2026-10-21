@@ -32,6 +32,7 @@
 | [glass-easel.md](glass-easel.md) | 微信官方组件框架 | exparser 后继：三后端协议 + **Rust 模板编译器白名单 AST** + 同步 setData 判例 | ★★★ |
 | [kbone.md](kbone.md) | 微信官方适配器 | DOM/BOM shim 派自报 **1000 节点红线**——D10-2 静态路线的官方反证 | ★★☆ |
 | [remax.md](remax.md) | 阿里 Remax | **死亡四年**的 React 运行时派：turbo-render 静态提取 = 向静态派的收敛尸体 | ★☆☆ |
+| [uniapp-compiler-internals.md](uniapp-compiler-internals.md) | DCloud uni-app 编译器内部 | uni-app 源码级地图：双代均为静态翻译+diff 运行时，放弃纯静态的真边界=长尾能力清单；177KB runtime fork 代价实测 | ★★★ |
 | [dsl-design-space.md](dsl-design-space.md) | 横评综合 | 九轴 x occupants x 实测后果 + OmniLet 逐轴站位表（编译切片设计输入） | ★★★ |
 
 ### 自渲染引擎（自有容器自绘模式的架构同构体）— lane: engines
