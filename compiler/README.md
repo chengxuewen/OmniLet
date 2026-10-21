@@ -77,9 +77,10 @@ pixi run pnpm --dir compiler exec tsx src/cli.ts --dir tests/fixtures/counter --
 
 `compileProject({root, outDir, target, mode})` is the programmatic entry
 (orchestration: ingest -> parse -> table rewrite -> codegen -> fail-closed write).
-**参数非冻结（§8 trigger "CLI 参数冻结 = 管线定型后"）**: flag names, `--mode`
-behavior (dev/prod emit identical bytes in slice 1), and the tsx-based run route
-are reopen-able; the emitted *package format* (package files + omnilet.d.ts sidecar
+**参数非冻结（§8 trigger "CLI 参数冻结 = 管线定型后"）**: flag names, the tsx-based
+run route, and `--mode prod` (a loud not-implemented throw until T11 wires the
+esbuild vendor-minify leg — never silent dev-bytes under a prod label) are
+reopen-able; the emitted *package format* (package files + omnilet.d.ts sidecar
 + the `omnilet-runtime.js` vendor slot at the package root that T11 must fill) is
 the frozen part — pinned by the `g100-counter-out` goldens + structural.test.ts.
 Re-record full-chain goldens with `RECORD_GOLDEN=1` (measured bytes only).

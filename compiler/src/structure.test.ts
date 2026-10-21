@@ -71,7 +71,13 @@ describe('structural tier over the counter build', () => {
   })
 
   it('zero #ifdef across every emitted byte (redline-1 machine form)', () => {
-    const re = /#if|@ifdef|#endif/
+    const re = /#if(def)?\b|#else\b|#endif\b|@ifdef\b/
+    // gate self-prove both directions: real conditional markers DO match...
+    expect(re.test('<!-- #ifdef wechat -->\n<view/>\n<!-- #endif -->')).toBe(true)
+    expect(re.test('x = y /* @ifdef web */ z')).toBe(true)
+    expect(re.test('#ifdefx is not a marker')).toBe(false)
+    // ...and CSS/JS hash-color text does NOT (the old unbounded '#if' over-matched)
+    expect(re.test('.a { color: #333; background: #ffffff; }')).toBe(false)
     for (const rel of EXPECTED_TREE) expect(re.test(readFileSync(join(out, rel), 'utf8'))).toBe(false)
   })
 

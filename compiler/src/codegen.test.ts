@@ -180,6 +180,26 @@ describe('emitJs pre-transform gates (never a silent half-strip)', () => {
     const r = emitModuleJs(`import { reactive as r } from 'omnilet'\nconst s = r({})\nexport default { s }`, opts)
     expect(r.code).toContain('const { reactive: r, createPage } = require(')
   })
+
+  // T10 review fix item 1: facade-name shadowing used to emit a duplicate-const
+  // SyntaxError product with ZERO diagnostics — now a 214 reject, file skipped.
+  it('top-level const shadowing an imported facade word -> 214, not emitted', () => {
+    const r = emitModuleJs(`import { reactive } from 'omnilet'\nconst reactive = { a: 1 }\nexport default { reactive }`, opts)
+    expect(r.code).toBeNull()
+    expect(r.diagnostics.map((d) => d.code)).toEqual([214])
+    expect(r.diagnostics[0]!.message).toContain("'reactive'")
+  })
+  it('destructured / function / factory-name shadows all -> 214', () => {
+    expect(emitModuleJs(`const { watch } = api()\nexport default {}`, opts).diagnostics.map((d) => d.code)).toEqual([214])
+    expect(emitModuleJs(`const [ref] = xs\nexport default {}`, opts).diagnostics.map((d) => d.code)).toEqual([214])
+    expect(emitModuleJs(`function computed() {}\nexport default {}`, opts).diagnostics.map((d) => d.code)).toEqual([214])
+    expect(emitModuleJs(`const createPage = 1\nexport default {}`, opts).diagnostics.map((d) => d.code)).toEqual([214])
+  })
+  it('non-facade top-level names stay untouched (no false bite)', () => {
+    const r = emitModuleJs(`import { reactive } from 'omnilet'\nconst { state } = store()\nexport default { state: reactive(state) }`, opts)
+    expect(r.diagnostics).toEqual([])
+    expect(r.code).toContain('createPage(')
+  })
 })
 
 // ------------------------------------------------------- appjson + manifest + dts
@@ -292,4 +312,17 @@ describe('capability refusal blocks the whole emit (4xx before write)', () => {
       rmSync(tmp, { recursive: true, force: true })
     }
   })
+})
+
+// T10 review fix item 3: 'prod' is loud-not-implemented until T11 wires the
+// esbuild vendor-minify leg (silent dev-bytes-under-a-prod-label was the alt).
+it("mode 'prod' rejects at compileProject entry", async () => {
+  const tmp = mkdtempSync(join(tmpdir(), 'omnilet-prod-'))
+  try {
+    await expect(
+      compileProject({ root: join(SRC, '..', 'tests', 'fixtures', 'counter'), outDir: join(tmp, 'out'), mode: 'prod' }),
+    ).rejects.toThrow(/prod.*not implemented/)
+  } finally {
+    rmSync(tmp, { recursive: true, force: true })
+  }
 })

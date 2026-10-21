@@ -11,8 +11,8 @@
 //   omnilet.d.ts                OUT-sidecar facade types (TYPE tier input;
 //                               part of outDir, outside the PACKAGE file set —
 //                               WeChat never loads it)
-// ponytail: mode dev/prod accepts both but emits IDENTICAL bytes in slice 1 —
-// prod minify policy is a §8 unfrozen parameter (add when a measurement asks).
+// mode='prod' is T11 territory (esbuild vendor minify); calling it now throws
+// loudly rather than silently emitting dev bytes (T10 review fix item 3).
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { loadCapabilities } from '../../packages/rule-schema/src/index'
@@ -39,6 +39,7 @@ export type CompileOptions = {
   /** slice 1 ships the wechat target only; web/container targets register their
    *  own rules+codegen modules in their slices (spec §1 明确不做). */
   target?: 'wechat'
+  /** omitted = 'dev'. 'prod' throws until T11 wires vendor minify. */
   mode?: CompileMode
 }
 
@@ -51,6 +52,9 @@ export type CompileResult = {
 
 export async function compileProject(options: CompileOptions): Promise<CompileResult> {
   const { root, outDir } = options
+  if (options.mode === 'prod') {
+    throw new Error("compileProject: mode 'prod' not implemented in slice 1 (vendor esbuild minify lands T11); pass mode 'dev' or omit it")
+  }
   const diagnostics: Diag[] = []
 
   // [station 1] rule tables (throws TableGateError 301-303 — compile cannot

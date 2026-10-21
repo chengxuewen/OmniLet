@@ -51,10 +51,22 @@ type BNode = {
   specifiers?: BNode[]
   imported?: { name?: string }
   local?: { name?: string }
+  name?: string
+  id?: BNode
   declaration?: BNode
+  declarations?: BNode[] // Babel 8 ESTree field name (probed from the real ast)
+  properties?: BNode[]
+  elements?: BNode[]
+  value?: BNode
 }
 
 const FORBIDDEN_TS = ['TSEnumDeclaration', 'TSModuleDeclaration', 'TSParameterProperty'] as const
+
+// Words the emitted `const { ...bindings, <factory> } = require(...)` head binds.
+// An author top-level declaration of any of these = duplicate-const SyntaxError
+// (name also imported) or facade-shadow (name not imported) shipping with ZERO
+// diagnostics — validateShape rejects the file before codegen (T10 fix R1-1).
+const FACADE_WORDS = ['reactive', 'ref', 'computed', 'watch'] as const
 
 export function emitPageJs(ts: string, pageName: string): JsResult {
   const dir = pageName.slice(0, pageName.lastIndexOf('/') + 1) // 'pages/index/'
@@ -82,7 +94,7 @@ export function emitModuleJs(ts: string, opts: EmitOpts): JsResult {
   if (forbidden.length > 0) {
     return { code: null, diagnostics: forbidden.map((kind) => tsUnerasurable(kind)) }
   }
-  const shape = validateShape(astTopLevel(ast), file)
+  const shape = validateShape(astTopLevel(ast), file, factory)
   if (shape.length > 0) return { code: null, diagnostics: shape }
 
   // [2] type-strip transform, then module surgery on the STRIPPED text.
@@ -154,11 +166,19 @@ function hasNodeKind(node: unknown, kind: string): boolean {
   return false
 }
 
-/** Slice-1 module contract on the top-level statements (see file header). */
-function validateShape(body: BNode[], file: string): Diag[] {
+/** Slice-1 module contract on the top-level statements (see file header).
+ *  Also guards the emitted `const { ...facade, <factory> } = require(...)` line:
+ *  a top-level author declaration binding any facade word (imported or not)
+ *  = duplicate-const SyntaxError or silent shadow -> 214, file not emitted. */
+function validateShape(body: BNode[], file: string, factory: EmitOpts['factory']): Diag[] {
   const diags: Diag[] = []
   let defaults = 0
   for (const n of body) {
+    for (const bound of topLevelBindings(n)) {
+      if (FACADE_WORDS.includes(bound as (typeof FACADE_WORDS)[number]) || bound === factory) {
+        diags.push(shadowReject(bound, file))
+      }
+    }
     if (n.type === 'ImportDeclaration') {
       const src = n.source?.value ?? ''
       if (src !== 'omnilet') diags.push(shapeReject(`import from '${src}'（切片 1 门面词表只有 'omnilet'）`, file))
@@ -194,6 +214,40 @@ function shapeReject(reason: string, file: string): Diag {
     213,
     `模块形态越界：${reason}`,
     "切片 1 js 入口合同：import 仅 'omnilet' 具名 + 唯一 export default 对象字面量（其余模块系统随后续切片）",
+    { file, line: 0, col: 0 },
+  )
+}
+
+/** Top-level names a statement binds (var/let/const, function, class) — the
+ *  shadow-collision surface. Import declarations are NOT included (they route
+ *  to the require head, checked separately). */
+function topLevelBindings(n: BNode): string[] {
+  switch (n.type) {
+    case 'VariableDeclaration':
+      return (n.declarations ?? []).flatMap((d) => patternNames(d.id))
+    case 'FunctionDeclaration':
+    case 'ClassDeclaration':
+      return n.id?.name ? [n.id.name] : []
+    default:
+      return []
+  }
+}
+
+/** binding names of a binding pattern: `const x`, `const { reactive }`,
+ *  `const [watch]` — every shape collides with the require head the same way. */
+function patternNames(id: BNode | undefined): string[] {
+  if (!id) return []
+  if (id.name) return [id.name]
+  if (id.type === 'ObjectPattern') return (id.properties ?? []).flatMap((p) => patternNames(p.value))
+  if (id.type === 'ArrayPattern') return (id.elements ?? []).flatMap((e) => patternNames(e))
+  return []
+}
+
+function shadowReject(bound: string, file: string): Diag {
+  return diag(
+    214,
+    `顶层声明 '${bound}' 遮蔽运行时门面名`,
+    "reactive/ref/computed/watch 与 createPage/createApp 由产物顶部的 require 行绑定，顶层同名声明会重复声明或静默遮蔽（零诊断）——换个名字，或删掉 import",
     { file, line: 0, col: 0 },
   )
 }
