@@ -25,6 +25,7 @@
 | document | subject | one sentence | relevance |
 |------|------|--------|:-----:|
 | [uniapp.md](uniapp.md) | DCloud uni-app / uni-app x | 最大跨端框架：条件编译范式 + uts 编译到 Kotlin/Swift（最接近自有容器目标） | ★★★ |
+| [uniapp-compiler-internals.md](uniapp-compiler-internals.md) | uni-app 编译器内部（源码级） | Vue3/Vue2 编译链 + 平台规则表位置 + setData diff 运行时规模 + 条件编译 + 样式管线；纠偏"Vue2 静态/Vue3 运行时"误述 | ★★★ |
 | [taro.md](taro.md) | 京东 Taro 3.x/4.x | React 语系跨端：编译时+运行时抹平混合架构 | ★★★ |
 | [chameleon.md](chameleon.md) | 滴滴 Chameleon | **已归档（实测 2023-01 停更）**：纯自研 DSL 无生态的死亡教训样本 | ★☆☆ |
 | [mpx.md](mpx.md) | 滴滴 mpx | Vue 语法 + **MobX** 引擎的判例档案：setData 双优化 / 四维条件编译 / regenerator 暗坑 | ★★★ |

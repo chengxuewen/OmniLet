@@ -20,6 +20,7 @@
 3. **四维条件编译**（`cross-platform/conditional.md`）：文件后缀（`.ali.mpx`）/ 区块（`src-mode`）/ 代码（`__mpx_mode__`）/ **属性维度（`@mode` 与 `|` 语法，专治组件 API 端差，如 button open-type 微信 getUserInfo vs 支付宝 getAuthorize）**。10 个 mode：wx/ali/swan/qq/tt/jd/web/ios/android/harmony。
 4. **`srcMode` 与 `mode` 分离**：输出目标 ≠ 源码方言——允许同一文件混写多种宿主方言，转换管线不自缠绕。"单源 vs 每端方言"之争的第三种答案。
 5. **可选链靠编译期降级到 WXS 函数调用**——表达力被宿主语言封顶的实例。
+   - **引擎删减成文判例**（`guide/composition-api/reactive-api.md` 原文）：composition API 响应式"由于 proxy 目前仍然存在浏览器兼容性问题，我们在底层还是基于 `Object.defineProperty` 实现的数据响应，因此相较于 Vue3 提供的 API 存在一些删减"——跨引擎 API 差异成文披露的一手先例（D21 Card 1 纪律正例；随本档 SHA 可验）。
 6. **无 CSS scoped**：全局 WXSS + `style src` 构建期去重（官方警告 `@import`+lang 会重复打包膨胀）；RN 输出进一步收窄到**仅类选择器**。
 7. **TS 故事 = 无 .d.ts 自动生成**：手写 `types.d.ts` + `createStoreWithThis` 等**反推辅助 API 变体**（官方承认"ts 本身的能力限制"迫使运行时加变体）；需 TS>=4.1.3 + 专属 VSCode 插件。
 8. **静态编译的暗坑**：async/await 被 babel 编成 regenerator switch 后**破坏死代码消除**，条件编译的 false 分支仍被打包——官方文档化绕行（if 块包 await / 改 Promise）。静态路线的坑不在方向在 AST 层之下的降级物。

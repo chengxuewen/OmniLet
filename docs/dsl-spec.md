@@ -1,4 +1,4 @@
-# OmniLet DSL Specification（v0.2）
+# OmniLet DSL Specification（v0.3）
 
 > **状态**：骨架（G3，scaffold 落地；内容随 A1-A4 切片生长）。
 > **生态立场**（D9-2 裁决）：**MVP 自带核心组件集（覆盖 80% 页面场景）；npm UI 组件互操作 = Phase 2；纯 JS 逻辑 npm 包自第一天生效。**
@@ -19,7 +19,7 @@ app.json        页册 + manifest 能力申报（D17 词）
 
 **词表**（2a 混挂裁决：借得到光的全借，借不到的自造）：
 - 指令 = Vue 族 `v-if` / `v-for`（D10-1 落点；模板解析器直接复用 @vue/compiler，白拿）；插值 `{{ }}`。
-- 表达式 = 白名单操作枚举（glass-easel 同型哲学）：数据读取/运算/字面量可，**函数调用不可**——派生逻辑走 script 层 computed。
+- 表达式 = 白名单操作枚举（glass-easel 同型哲学）：数据读取/运算/字面量可，**函数调用不可**——派生逻辑走 script 层 computed。`?.`/`??` 暂排除（微信表达式支持度 *UNCERTAIN*，实测后回收）。
 - 事件 = `@tap="inc"` 主词 + `bindtap` 别名（规则表一行成本换微信迁移零改）。
 - `ol:` 扩展命名空间 = 只收"别家没有对应词"的概念（能力申报 `ol:requires="storage"`、未来端差标记——D21 Card 2 留位）。**反丑纪律**：ol: 与 v- 词表永不相交；ol: 不入侵基础指令域；交集非空 = CI 红。
 
@@ -35,7 +35,12 @@ app.json        页册 + manifest 能力申报（D17 词）
 | 运行时拼接组件名（`<{{ tagName }}>`） | 静态编译（D10-2）无法穷举 | 条件分支 `<view v-if>` 全枚举 |
 | 函数式子组件宏（模板内调函数返回模板） | 破坏静态可翻译性 | 组件 props + slot |
 | 跨文件动态 include | 同上 | 显式 import 组件 |
-| `<iframe>` 标签 | 双渲染路径语义不可对齐（标准模式=iframe / HMI 模式=OSR 实例，行为差异泄漏） | `<web-view src>`（D13-1；编译器对 iframe 自动翻译并告警） |
+| `<iframe>` 标签 | 双渲染路径语义不可对齐（标准模式=iframe / HMI 模式=OSR 实例，行为差异泄漏） | `<web-view src>`（D13-1；自动翻译+告警为 Web 切片起的目标行为，编译器切片 1 = 报错保守版） |
+| `model:` 双向糖 | 单向数据流（2c 裁决；双线程无同步回写通道） | 逻辑层 state 单向赋值 + computed；输入回显走事件 handler |
+| `:class`/`:style` 对象·数组语法 | Vue 全保真 = 运行时归约需求（uni-app v3 教训） | 三元拼字符串或静态 class + script 层切换 class 名 |
+| v-for 解构三元组 / `:of` 迭代协议 | 微信 wx:for 无对位；静态穷举域外 | `(item, index)` 两元；数据先在 script 层整形 |
+| TS 不可擦除语法（enum/namespace/参数属性） | 类型剥除内核（erasableSyntaxOnly 纪律）不编译它们，降级会产运行时代码破坏"逻辑层纯 TS 即真相" | const 对象字面量 / 顶层函数 |
+| handler 非标识符（内联表达式/成员访问链） | 事件表静态提取的前提 | 具名方法，复杂逻辑进方法体 |
 
 （首版即冻结扩展流程：新增负面条目 = dsl-spec 修订 + golden 测试同步）
 
@@ -81,3 +86,15 @@ app.json        页册 + manifest 能力申报（D17 词）
 - **一个词三处用**：capability 段 = manifest 权限声明词 = 授权判定词 = 审计日志词，零映射表。
 - 业务观感对齐 `chrome.<api>.<method>` 词形；wx.* 兼容面为独立产品策略议题（未裁）。
 - **首落地词**：`storage`（`omnilet.storage.get/set`，T7 桥注册；派发/接收路已实测活，JS-可见腿待 CEF-07 注入裁决——见 SDD CEF-07）。
+## 10. 响应式插座（三原语，D21 Card 1 接口成文）
+
+插座定义 = 三原语；§1 门面词表恒建于其上，引擎实现按 flavor 插档互换：
+
+| 原语 | 职责 |
+|---|---|
+| observe（观察登记） | 模板/render 读数据路径时，登记"谁在读这条路径" |
+| write（写标脏） | state 被写入时标脏、查询读者名单 |
+| flush（回合通知） | 回合结束把脏路径一次性交调度器（编译期路径清单驱动 setData / DisplayList 提交） |
+
+- 标准档 = @vue/reactivity 实现三原语（effect/调度器映射）；lite 档 = 最小信号集（后续切片）；容器侧 Rust 三原语 trait（omnilet-jsengine）随 lite/运行时切片落地——compile-slice-1 §1 不做清单登记。
+- 每档 API 删减表在实现该档时成文、越界编译期报错（mpx defineProperty 删减成文是正例教材，证据锚 mpx.md）。

@@ -1,6 +1,6 @@
 # OmniLet 测试矩阵（D6 交付物）
 
-**版本**：v1.0 | **日期**：2026-10-16 | **性质**：发布门禁全景表（user-adjudicated 2026-10-16，含 T4 平台修正）
+**版本**：v1.1 | **日期**：2026-10-16 | **性质**：发布门禁全景表（user-adjudicated 2026-10-16，含 T4 平台修正）
 **哲学**（D1 蒸馏 testing-honesty）：报"通过"必须带 tier 名；门禁必须证明能咬人（正样本必红）；HashMap/迭代序不做可观察断言。
 
 ## 四层金字塔
@@ -16,6 +16,7 @@
 | 域 | 内容 | 出处 |
 |----|------|------|
 | 编译器管线 | 输入样例库 → 三目标（微信/Web/自有容器）产物快照对比 | D5-3 |
+| 编译器产物（结构/行为档） | 产物文件树 + app.json ajv + wxml 语法 lint（miniprogram-compiler）+ 零 #ifdef grep；miniprogram-simulate Component 行为断言 | D9 S-4 落地 + compile-slice-1 spec §6（2026-10-21 审查合裁） |
 | 容器 SDK | 沙箱 / 权限三层组合矩阵 / Worker 三级能力 / dataChannel 分区 | D5 add2/3/5 |
 | **引擎一致性** | 同一业务 API 测试集 × {standard-V8, standard-JSC, lite-QuickJS}，diff 必须为空 | D5 add1 细节③ |
 | CSS/组件映射 | omnilet- 前缀隔离、DOM 映射一致性 | D5 add3-1 |
@@ -35,6 +36,7 @@
 | **macOS/iOS** | 真机冒烟（WKWebView + JSC；零体积增量验证） | |
 | **Android** | 真机冒烟（WebView + V8，厂商碎片化抽样） | |
 | **Web 目标** | 主流浏览器矩阵（Chrome/Firefox/Safari/Edge）人工清单 | 编译到网页的产物验收 |
+| **微信开发者工具** | 编译产物人眼验收一次（A1 一级勾选挂此；Linux 本机不可执行 → 人工签核记 pending） | compile-slice-1 spec §6 人眼档 |
 | HMI 硬件在环 | 车机/工控 target | 二期起 |
 
 ## 发版红线（任一红 = 不可发版）
