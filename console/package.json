@@ -2,5 +2,7 @@
   "name": "@omnilet/console",
   "version": "0.1.0",
   "private": true,
-  "description": "Admin console (D6: Node+React+PostgreSQL). Implementation lands with the console slice — this manifest only registers the workspace member."
+  "description": "Admin console (D6: Node+React+PostgreSQL). Implementation lands with the console slice — this manifest only registers the workspace member.",
+  "scripts": { "test": "vitest run" },
+  "devDependencies": { "vitest": "^3.0.0" }
 }
