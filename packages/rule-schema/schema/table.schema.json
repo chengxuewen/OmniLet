@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://omnilet.dev/schemas/table-row-v1.json",
+  "title": "OmniLet compiler rule-table row v1",
+  "description": "Machine contract for one row of the seven-part rule table (tagMap/directiveMap/eventMap/lifecycleMap/exprWhitelist/styleRules/capabilityRules). Consumers: ajv gate in @omnilet/compiler (T5), table authoring. Enum source of truth mirrors compiler/src/types.ts.",
+  "type": "object",
+  "required": ["kind", "s", "golden"],
+  "additionalProperties": true,
+  "properties": {
+    "kind": {
+      "enum": ["tagMap", "directiveMap", "eventMap", "lifecycleMap", "exprWhitelist", "styleRules", "capabilityRules"],
+      "description": "Owning table of the seven-part rule table (D5 table-driven compiler)."
+    },
+    "s": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Source token (tag / directive / event / lifecycle hook / expr pattern / style rule / capability name)."
+    },
+    "t": {
+      "type": "string",
+      "description": "Target token; absent for whitelist/passthrough-style rows."
+    },
+    "primitive": {
+      "enum": ["rename", "wrapExpr", "splitDirective", "keyTransform", "valueMap", "passthrough", "classPrefix", "lifecyclePassthrough"],
+      "description": "Kernel primitive the row maps onto (closed 8-value set, D21 mixed-DSL vocab)."
+    },
+    "golden": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Expected compiler output fragment for this row (byte-normalized per NORMALIZATION.md). Fail-closed: a row without a golden is not testable."
+    }
+  }
+}
