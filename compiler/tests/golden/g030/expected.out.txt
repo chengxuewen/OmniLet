@@ -1,1 +1,4 @@
-T10-pending js-side volume (lifecycle hook passthrough g030); direct pin in primitives.test.ts
+const { createApp } = require('./omnilet-runtime.js')
+createApp({
+  onLaunch() {}
+});

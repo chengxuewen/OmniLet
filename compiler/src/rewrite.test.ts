@@ -68,7 +68,7 @@ describe('counter fixture template rewrites in one pass', () => {
         '  <text>\n' +
         '    {{count}}\n' +
         '  </text>\n' +
-        '  <view wx:for="list" wx:for-item="item" wx:for-index="idx" wx:key="index">\n' +
+        '  <view wx:for="{{list}}" wx:for-item="item" wx:for-index="idx" wx:key="index">\n' +
         '    <text>\n' +
         '      {{item}}\n' +
         '    </text>\n' +

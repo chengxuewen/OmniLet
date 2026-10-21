@@ -1,1 +1,1 @@
-T10-pending css-side volume (selector:pseudo set not enumerated yet, spec 3 UNCERTAIN)
+.omnilet-card:hover { color: blue; }

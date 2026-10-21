@@ -66,3 +66,20 @@ WeChat page = `Component()` .js + `{"component": true}` .json; test harness =
 `comp.instance.<handler>()`) → `await simulate.sleep` → assert `wx-text` textContent.
 If a future slice wants true `Page()` semantics, it needs a page shim of our own —
 simulate will not provide one.
+
+## CLI / compileProject (Task 10)
+
+```bash
+# build a WeChat package from the authoring tree:
+pixi run pnpm --dir compiler exec tsx src/cli.ts --dir tests/fixtures/counter --out /tmp/pkg [--mode dev|prod]
+# exit 0 = zero diagnostics + files written; 1 = diagnostics printed (nothing written) or bad args
+```
+
+`compileProject({root, outDir, target, mode})` is the programmatic entry
+(orchestration: ingest -> parse -> table rewrite -> codegen -> fail-closed write).
+**参数非冻结（§8 trigger "CLI 参数冻结 = 管线定型后"）**: flag names, `--mode`
+behavior (dev/prod emit identical bytes in slice 1), and the tsx-based run route
+are reopen-able; the emitted *package format* (package files + omnilet.d.ts sidecar
++ the `omnilet-runtime.js` vendor slot at the package root that T11 must fill) is
+the frozen part — pinned by the `g100-counter-out` goldens + structural.test.ts.
+Re-record full-chain goldens with `RECORD_GOLDEN=1` (measured bytes only).

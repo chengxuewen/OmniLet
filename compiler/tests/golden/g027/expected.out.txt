@@ -1,1 +1,8 @@
-T10-pending js-side volume (lifecycle hook passthrough g031); direct pin in primitives.test.ts
+const { reactive, createPage } = require('../../omnilet-runtime.js')
+const state = reactive({
+  a: 1
+});
+createPage({
+  state,
+  onShow() {}
+});

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://omnilet.dev/schemas/page.schema.json",
+  "title": "WeChat page .json (slice-1 structural tier)",
+  "description": "Page config after compiler injection: component=true is compiler-guaranteed (Component-shape pages, README Task-1 verdict); navigationBarTitleText is the fixture-observed author key; other author keys pass through unconstrained.",
+  "type": "object",
+  "required": ["component"],
+  "additionalProperties": true,
+  "properties": {
+    "component": { "const": true },
+    "navigationBarTitleText": { "type": "string" }
+  }
+}

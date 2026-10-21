@@ -1,0 +1,1 @@
+<view wx:if="{{ready}}" class="omnilet-box"><text>{{count}}</text><view wx:for="{{list}}" wx:for-item="item" wx:for-index="idx" wx:key="index"><text>{{item}}</text></view><button bindtap="inc">+1</button></view>

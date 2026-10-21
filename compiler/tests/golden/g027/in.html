@@ -1,1 +1,3 @@
-T10-pending js-side volume (lifecycle hook passthrough g031); direct pin in primitives.test.ts
+import { reactive } from 'omnilet'
+const state = reactive({ a: 1 })
+export default { state, onShow() {} }

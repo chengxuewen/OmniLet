@@ -189,6 +189,15 @@ function prefixWords(value: string, prefix: string, exempt: ReadonlySet<string>)
     .join(' ')
 }
 
+/** The one styleRules classPrefix lookup: prefix word + exempt word set.
+ *  Template rewrite (classPrefix) and css codegen (T10 emitWxss) both route through
+ *  this policy = the same-source word table promise, read once per compile. */
+export function classPrefixPolicy(tables: TableSet): { prefix: string; exempt: ReadonlySet<string> } {
+  const row = tables.styleRules.find((r) => r.primitive === 'classPrefix')
+  const exempt = new Set(tables.styleRules.filter((r) => r.exempt === true).map((r) => r.s))
+  return { prefix: row?.t ?? 'omnilet-', exempt }
+}
+
 /**
  * Template-side static class rewrite (D5 add3-1: 编译器自动加前缀，业务手写免前缀).
  * `box` -> `omnilet-box`; words with an exempt styleRules row and already-prefixed
@@ -198,9 +207,8 @@ function prefixWords(value: string, prefix: string, exempt: ReadonlySet<string>)
  * dynamic :class strings are author responsibility (§2 替代写法: script 层切换 class 名).
  */
 export function classPrefix(value: string, tables: TableSet): string {
-  const row = tables.styleRules.find((r) => r.primitive === 'classPrefix')
-  const exempt = new Set(tables.styleRules.filter((r) => r.exempt === true).map((r) => r.s))
-  return prefixWords(value, row?.t ?? 'omnilet-', exempt)
+  const { prefix, exempt } = classPrefixPolicy(tables)
+  return prefixWords(value, prefix, exempt)
 }
 
 /**
@@ -229,7 +237,10 @@ export const PRIMITIVES: Record<NonNullable<TableRow['primitive']>, (job: PrimJo
     const item = itemRaw ?? 'item'
     const index = indexRaw ?? 'index'
     const scope: ForScope = { item, index }
-    const gated = gateAttr({ ...job, raw: (listRaw ?? '').trim(), scope }, row.t ?? 'wx:for', false)
+    // wrap:true on the v-for row (T10): the list value is an EXPRESSION and real WXML
+    // needs it brace-wrapped (`wx:for="{{list}}"`); for-item/for-index stay bare alias
+    // names (correct WXML spelling). Table-driven — the brace rule lives in the row, not code.
+    const gated = gateAttr({ ...job, raw: (listRaw ?? '').trim(), scope }, row.t ?? 'wx:for', row.wrap === true)
     if (gated.diagnostics.length > 0) return gated
     return {
       attrs: [...gated.attrs, { k: 'wx:for-item', v: item }, { k: 'wx:for-index', v: index }],

@@ -103,7 +103,7 @@ describe('splitDirective — v-for header split (`:of`/3-tuple rejected, no inve
   it('direct: (item, idx) in list -> wx:for + wx:for-item + wx:for-index + alias scope', () => {
     const res = PRIMITIVES.splitDirective(job('(item, idx) in list'), rowOf('v-for'))
     expect(res.attrs).toEqual([
-      { k: 'wx:for', v: 'list' },
+      { k: 'wx:for', v: '{{list}}' },
       { k: 'wx:for-item', v: 'item' },
       { k: 'wx:for-index', v: 'idx' },
     ])
@@ -127,7 +127,7 @@ describe('splitDirective — v-for header split (`:of`/3-tuple rejected, no inve
     const out = run('<view v-for="(row, i) in rows"><text>{{ i }}</text></view>')
     expect(out.diagnostics).toEqual([])
     expect(serializeAst(out.outAst)).toBe(
-      '<view wx:for="rows" wx:for-item="row" wx:for-index="i">\n  <text>\n    {{i}}\n  </text>\n</view>\n',
+      '<view wx:for="{{rows}}" wx:for-item="row" wx:for-index="i">\n  <text>\n    {{i}}\n  </text>\n</view>\n',
     )
     expect(out.paths).toEqual(['rows']) // `i` is a loop alias, not a data path
   })
@@ -200,7 +200,7 @@ describe('attribute emission order is table-driven, not source-driven', () => {
     const out = run('<view :key="idx" v-for="(item, idx) in list"></view>')
     expect(out.diagnostics).toEqual([])
     expect(serializeAst(out.outAst)).toBe(
-      '<view wx:for="list" wx:for-item="item" wx:for-index="idx" wx:key="index">\n</view>\n',
+      '<view wx:for="{{list}}" wx:for-item="item" wx:for-index="idx" wx:key="index">\n</view>\n',
     )
   })
 

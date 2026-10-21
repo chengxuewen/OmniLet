@@ -33,8 +33,9 @@ export type TableRow = {
   s: string
   t?: string
   primitive?: PrimName
-  /** attr-granular wrap flag (D5 wrapExpr): rename rows declaring true emit the
-   *  bare expression wrapped as `{{expr}}` in the output attribute value. */
+  /** attr-granular wrap flag (D5 wrapExpr): rename rows — and the splitDirective
+   *  v-for list attr (T10) — declaring true emit the bare expression wrapped as
+   *  `{{expr}}` in the output attribute value. */
   wrap?: boolean
   /** styleRules class-word exemption (T9): true = this class word never takes the
    *  omnilet- prefix. Template rewrite and css codegen read the same row (同源词表). */

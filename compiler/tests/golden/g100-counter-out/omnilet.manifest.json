@@ -1,0 +1,7 @@
+{
+  "omniletManifestVersion": 1,
+  "capabilities": [
+    "storage"
+  ],
+  "builtBy": "omnilet-compiler@0.1.0-slice1"
+}

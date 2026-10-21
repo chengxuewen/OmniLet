@@ -1,1 +1,7 @@
-T10-pending manifest volume (storage capability row; checkCapabilities lands T9)
+{
+  "omniletManifestVersion": 1,
+  "capabilities": [
+    "storage"
+  ],
+  "builtBy": "omnilet-compiler@0.1.0-slice1"
+}

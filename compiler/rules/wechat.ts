@@ -1,8 +1,9 @@
 // First rule table (compile-slice1 T5/T8/T9): WeChat target, table-driven (D5).
 // All seven partitions populated: tagMap/directiveMap/eventMap/exprWhitelist
-// (T8) + lifecycleMap/styleRules/capabilityRules rows (T9). Goldens g018-g021 are
-// template-side real bytes (loop-checked); g022-g030 are existence-only placeholders
-// whose volumes T10 (css/js/manifest codegen) records — same ruling as g001-g003 (R2).
+// (T8) + lifecycleMap/styleRules/capabilityRules rows (T9). Golden tiers:
+// g001-g019 + g021 template-side real bytes (rewrite-layer loop-checked; g021 by
+// the classPrefix same-source test); g020 + g022-g030 are codegen volumes
+// (css/js/manifest) recorded by T10 and loop-checked in codegen.test.ts.
 // `golden` fields are golden-dir ids under compiler/tests/golden.
 import type { RawTableSet } from '../src/tables'
 
@@ -14,7 +15,7 @@ export const wechatTables: RawTableSet = {
   ],
   directiveMap: [
     { kind: 'directiveMap', s: 'v-if', t: 'wx:if', primitive: 'rename', wrap: true, golden: 'g004' },
-    { kind: 'directiveMap', s: 'v-for', t: 'wx:for', primitive: 'splitDirective', golden: 'g005' },
+    { kind: 'directiveMap', s: 'v-for', t: 'wx:for', primitive: 'splitDirective', wrap: true, golden: 'g005' },
     { kind: 'directiveMap', s: ':key', t: 'wx:key', primitive: 'keyTransform', golden: 'g006' },
     // :class/:style simple-expr rows (T9 ruling): object/array literals reject at the
     // visitor as NEGATIVE class-obj (202); anything the expr whitelist accepts emits

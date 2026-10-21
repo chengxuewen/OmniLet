@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://omnilet.dev/schemas/app.schema.json",
+  "title": "WeChat app.json (slice-1 structural tier)",
+  "description": "Minimal honest shape of the MERGED app.json the compiler emits: pages is compiler-owned and required after merge; everything else is author pass-through and deliberately unconstrained (WeChat's own key set is out of scope for slice 1 — do not over-schema).",
+  "type": "object",
+  "required": ["pages"],
+  "additionalProperties": true,
+  "properties": {
+    "pages": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^[\\w][\\w./-]*$" }
+    }
+  }
+}
