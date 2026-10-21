@@ -194,6 +194,13 @@ describe('emitJs pre-transform gates (never a silent half-strip)', () => {
     expect(emitModuleJs(`const [ref] = xs\nexport default {}`, opts).diagnostics.map((d) => d.code)).toEqual([214])
     expect(emitModuleJs(`function computed() {}\nexport default {}`, opts).diagnostics.map((d) => d.code)).toEqual([214])
     expect(emitModuleJs(`const createPage = 1\nexport default {}`, opts).diagnostics.map((d) => d.code)).toEqual([214])
+    // final-review wave item 2: RestElement carries .argument, not .value --
+    // `...reactive` escaped the gate pre-fix (device SyntaxError, zero diags)
+    expect(emitModuleJs(`const { a, ...reactive } = api()\nexport default {}`, opts).diagnostics.map((d) => d.code)).toEqual([214])
+    expect(emitModuleJs(`const { a, ...watch } = api()\nexport default {}`, opts).diagnostics[0]!.message).toContain("'watch'")
+    expect(emitModuleJs(`const [first, ...computed] = xs\nexport default {}`, opts).diagnostics.map((d) => d.code)).toEqual([214])
+    // no false bite: non-facade rest names pass
+    expect(emitModuleJs(`import { reactive } from 'omnilet'\nconst { a, ...rest } = api()\nexport default { s: reactive(a) }`, opts).diagnostics).toEqual([])
   })
   it('non-facade top-level names stay untouched (no false bite)', () => {
     const r = emitModuleJs(`import { reactive } from 'omnilet'\nconst { state } = store()\nexport default { state: reactive(state) }`, opts)

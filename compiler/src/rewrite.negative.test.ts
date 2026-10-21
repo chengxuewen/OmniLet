@@ -40,12 +40,11 @@ describe('1xx form-negative representatives', () => {
 
   it('the <{{tagName}}> spelling is reddened at PARSE level (documented conservative cousin of 101)', () => {
     // The LOCKED parser cannot represent a concatenated tag name pre-codegen: it emits
-    // 1xx lex/parse noise (ir.ts base 110 + vue code 23 'Invalid end tag'). The visitor
+    // 1xx lex/parse noise (ir.ts base 130 + vue code 23 'Invalid end tag' = 153). The visitor
     // detects the `is=` form; this spelling is already fail-closed one stage earlier.
     const res = buildTemplateAst('<{{ tagName }}></view>', 'negative-probe')
     expect(res.diagnostics.length).toBeGreaterThan(0)
-    expect(res.diagnostics[0]!.code).toBeGreaterThanOrEqual(110)
-    expect(res.diagnostics[0]!.code).toBeLessThan(200)
+    expect(res.diagnostics[0]!.code).toBe(153) // base 130 + vue 23 (exact pin, collision wave item 1)
     expect(res.diagnostics[0]!.message).toContain('Invalid end tag')
     expect(renderExpect('dynamic-component')).toContain('替代') // entry-level copy holds
   })

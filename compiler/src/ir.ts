@@ -36,10 +36,14 @@ const LOCKED_OPTIONS = {
 
 /**
  * vue ErrorCodes run 0..64 (enum __EXTEND_POINT__ = 54 core / 65 dom);
- * base 110 keeps them clear of the 101-109 negative-entry band (diag.ts)
- * while staying inside the 1xx lex/parse family (types.ts).
+ * base 130 keeps them clear of BOTH the 101-109 negative-entry band (diag.ts)
+ * AND the codegen lex/parse band 121-125 (css 121 / script 122-123 / json 124-125,
+ * allocated later at T10 — final-review collision fix: vue codes 11-15 on base 110
+ * collided with those exact numbers). Top of range: 130+64=194 < 200, still
+ * inside the 1xx lex/parse family (types.ts); the `-1` unknown-code fallback
+ * lands 129 — parse family, clear of the negative band (retires the T7 minor).
  */
-const PARSE_DIAG_BASE = 110
+const PARSE_DIAG_BASE = 130
 
 export function buildTemplateAst(html: string, file = '<anon>'): TemplateAstResult {
   const diagnostics: Diag[] = []

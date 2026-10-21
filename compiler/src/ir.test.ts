@@ -48,8 +48,11 @@ describe('buildTemplateAst — locked parse options', () => {
     expect(ast).toBeDefined() // parse recovered, tree still returned
     expect(diagnostics.length).toBeGreaterThan(0)
     for (const d of diagnostics) {
-      expect(d.code).toBeGreaterThanOrEqual(110)
+      expect(d.code).toBeGreaterThanOrEqual(130)
       expect(d.code).toBeLessThan(200)
+      // band separation (final-review wave item 1): parse diags must never land
+      // on the codegen lex/parse codes 121-125 (old base 110 + vue codes 11-15 did)
+      expect([121, 122, 123, 124, 125].includes(d.code)).toBe(false)
       expect(d.loc?.line).toBeGreaterThan(0)
       expect(d.loc?.col).toBeGreaterThan(0)
       expect(d.loc?.file).toBe('bad.html')
@@ -59,7 +62,7 @@ describe('buildTemplateAst — locked parse options', () => {
   it('unclosed <view> at EOF is diagnosed, not thrown', () => {
     const { diagnostics } = buildTemplateAst('<view>', 'unclosed.html')
     expect(diagnostics.length).toBeGreaterThan(0)
-    expect(diagnostics.every((d) => d.code >= 110 && d.code < 200)).toBe(true)
+    expect(diagnostics.every((d) => d.code >= 130 && d.code < 200)).toBe(true)
   })
 })
 

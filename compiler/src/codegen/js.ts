@@ -62,6 +62,7 @@ type BNode = {
   properties?: BNode[]
   elements?: BNode[]
   value?: BNode
+  argument?: BNode // RestElement carry (probed: `...reactive` -> argument.name)
 }
 
 const FORBIDDEN_TS = ['TSEnumDeclaration', 'TSModuleDeclaration', 'TSParameterProperty'] as const
@@ -242,7 +243,9 @@ function topLevelBindings(n: BNode): string[] {
 function patternNames(id: BNode | undefined): string[] {
   if (!id) return []
   if (id.name) return [id.name]
-  if (id.type === 'ObjectPattern') return (id.properties ?? []).flatMap((p) => patternNames(p.value))
+  if (id.type === 'RestElement') return patternNames(id.argument)
+  if (id.type === 'ObjectPattern')
+    return (id.properties ?? []).flatMap((p) => (p.type === 'RestElement' ? patternNames(p) : patternNames(p.value)))
   if (id.type === 'ArrayPattern') return (id.elements ?? []).flatMap((e) => patternNames(e))
   return []
 }

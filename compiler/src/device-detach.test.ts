@@ -66,6 +66,93 @@ describe('no-DOM-globals detach leg (device-shaped vm sandbox)', () => {
     }
   })
 
+  // Final-review wave RIDER (retires the T11 prod-bake deferred item): the esbuild-
+  // MINIFIED vendor must carry the full facade lifecycle in a bare vm — the exact
+  // reviewer-described surface jsdom hides: methods mutating state, computed, watch,
+  // ref, same-tick setData dedup, and post-detach write freeze (+ the no-DUM leaks).
+  it('PROD vendor: full lifecycle in bare vm (methods/computed/watch/ref/dedup/freeze)', async () => {
+    const { mkdtempSync, rmSync } = await import('node:fs')
+    const { tmpdir } = await import('node:os')
+    const out = mkdtempSync(join(tmpdir(), 'omnilet-device-prod-'))
+    try {
+      const r = await compileProject({ root: join(SRC, '..', 'tests', 'fixtures', 'counter'), outDir: out, mode: 'prod' })
+      expect(r.ok).toBe(true)
+      const code = readFileSync(join(out, RUNTIME_VENDOR), 'utf8')
+
+      const ctx = vm.createContext({ module: { exports: {} } })
+      new vm.Script(code).runInContext(ctx)
+      for (const name of ['window', 'document', 'process', 'stop']) {
+        expect(vm.runInContext(`typeof ${name}`, ctx)).toBe('undefined')
+      }
+      type WxInstance = { setData(d: Record<string, unknown>): void }
+      type WxPageOpts = {
+        data: Record<string, unknown>
+        methods: Record<string, () => void>
+        created: (this: WxInstance) => void
+        detached: (this: WxInstance) => void
+      }
+      const ex = (ctx.module as { exports: Record<string, unknown> }).exports as unknown as {
+        createPage: (def: Record<string, unknown>) => WxPageOpts
+        reactive: <T extends object>(o: T) => T
+        ref: <T>(v: T) => { value: T }
+        computed: <T>(g: () => T) => { value: T }
+        watch: (src: () => unknown, cb: (n: unknown, o: unknown) => void) => void
+      }
+
+      const state = ex.reactive({ count: 0 })
+      const double = ex.computed(() => state.count * 2)
+      const seen: [unknown, unknown][] = []
+      ex.watch(() => state.count, (n, o) => seen.push([n, o]))
+      const r7 = ex.ref(7)
+      let loads = 0
+      let unloads = 0
+      const writes: Record<string, unknown>[] = []
+      const inst: WxInstance = { setData: (d) => void writes.push(d) }
+      const opts = ex.createPage({
+        state,
+        methods: { inc() { state.count++ } },
+        onLoad: () => { loads++ },
+        onUnload: () => { unloads++ },
+      })
+      expect(opts.data).toEqual({ count: 0 })
+      opts.created.call(inst)
+      await tick()
+      expect(loads).toBe(1)
+      expect(writes.length).toBe(1) // initial flush
+
+      opts.methods.inc()
+      await tick()
+      expect(state.count).toBe(1)
+      expect(double.value).toBe(2)
+      expect(r7.value).toBe(7)
+      expect(seen).toEqual([[1, 0]])
+      expect(writes.length).toBe(2)
+      expect(writes[1]!.count).toBe(1)
+
+      // tick dedup on the WRITE path: method increment + direct mutation in ONE
+      // tick -> ONE setData wave with the latest value (measured record: watch
+      // fires per change -> pairs [2,1],[3,2]; only the flush queue dedups)
+      opts.methods.inc()
+      state.count++
+      await tick()
+      expect(state.count).toBe(3)
+      expect(double.value).toBe(6)
+      expect(writes.length).toBe(3)
+      expect(writes[2]!.count).toBe(3)
+      expect(seen).toEqual([[1, 0], [2, 1], [3, 2]])
+
+      // post-detach freeze: render effect stopped -> no further setData ever
+      opts.detached.call(inst)
+      expect(unloads).toBe(1)
+      const frozen = writes.length
+      state.count++
+      await tick()
+      expect(writes.length).toBe(frozen)
+    } finally {
+      rmSync(out, { recursive: true, force: true })
+    }
+  })
+
   it('the zombie-stop defect bites in the same sandbox (bite probe, old bytes from git)', () => {
     // red-line honesty (#35: execute, don't grep): the reviewer's repro must
     // actually throw here. Old bundle = the commit that shipped the zombie line.
