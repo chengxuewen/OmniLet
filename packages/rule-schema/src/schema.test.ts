@@ -4,8 +4,6 @@ import schema from '../schema/manifest.schema.json'
 import tableSchema from '../schema/table.schema.json'
 import capabilitiesJson from '../capabilities.json'
 import { loadCapabilities, assertNormalized } from './index'
-import Ajv2020 from 'ajv/dist/2020'
-import schema from '../schema/manifest.schema.json'
 
 // D8-1 contract test: a well-formed manifest v1 validates; tampered shapes fail.
 const ajv = new Ajv2020({ allErrors: true })
@@ -47,6 +45,18 @@ const goodRow = { kind: 'tagMap', s: 'view', t: 'div', primitive: 'rename', gold
 describe('rule-table row schema (T2 table contract)', () => {
   it('accepts a well-formed row', () => {
     expect(validateRow(goodRow)).toBe(true)
+  })
+  it('pins the full 8-value primitive enum (dropping a legal value goes red)', () => {
+    expect([...tableSchema.properties.primitive.enum].sort()).toEqual([
+      'classPrefix',
+      'keyTransform',
+      'lifecyclePassthrough',
+      'passthrough',
+      'rename',
+      'splitDirective',
+      'valueMap',
+      'wrapExpr',
+    ].sort())
   })
   it('accepts a row without optional t / primitive', () => {
     expect(validateRow({ kind: 'exprWhitelist', s: 'a ? b : c', golden: 'a?b:c' })).toBe(true)
