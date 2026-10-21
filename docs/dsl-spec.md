@@ -1,41 +1,38 @@
-# OmniLet DSL Specification（骨架 v0.1）
+# OmniLet DSL Specification（v0.2）
 
 > **状态**：骨架（G3，scaffold 落地；内容随 A1-A4 切片生长）。
 > **生态立场**（D9-2 裁决）：**MVP 自带核心组件集（覆盖 80% 页面场景）；npm UI 组件互操作 = Phase 2；纯 JS 逻辑 npm 包自第一天生效。**
 > **负面清单格式**（Lynx CSS 子集先例）：明确写出"不支持什么"比罗列"支持什么"更有工程价值——每个受限形态给出替代写法。
 
-## 1. 模板语法（Vue-like，D10-1 裁决）
+## 1. 源码形态与词表（D21 + 同日改裁 2026-10-21）
 
-模板写在 `<template>` 块内，结构与微信 WXML 心智同构：
+**文件形态：每页/每组件拆标准文件，不造专属扩展名**（原案 `.omnilet` 单文件 + `.vue` 兼容已被用户复核推翻：自造扩展名的隐性税 = 专职 IDE 插件团队，判例 .ux 痛点/.cml 陪葬；正面判例 Taro 用 .tsx 吃满全世界工具 + 微信原生本就是拆文件）。
 
-```html
-<template>
-  <view class="container">
-    <text>{{ message }}</text>
-    <view wx:if="condition">...</view>      <!-- 具体指令名待定稿：v-if vs wx:if 原样 -->
-    <list-item wx:for="{{ items }}" />
-  </view>
-</template>
-
-<script lang="ts">
-// 逻辑层 = 纯 TS（D5：TS 主体、DSL 是糖）；响应式 = @vue/reactivity
-</script>
-
-<style>
-/* 样式子集见 §3 负面清单；单位语义（rpx）见 §4 */
-</style>
+```
+pages/index/
+  index.html    模板（裸片段，无 <template> 包壳）
+  index.ts      逻辑（纯 TS；D5：TS 主体、DSL 是糖）
+  index.css     样式（子集见 §3，rpx 见 §4）
+  index.json    本页配置（导航标题等）
+app.json        页册 + manifest 能力申报（D17 词）
 ```
 
-**待定稿项**（compiler 切片首日确定，不空转）：
-- [ ] 指令命名：沿用 wx:if 原样（微信亲和最大化）或 v-if（Vue 亲和）——倾向原样 `wx:`，理由与 D10-1 同构
-- [ ] 事件绑定形态：`bindtap` vs `@tap`
-- [ ] 数据绑定单向性声明（setData 语义的对齐面）
+**词表**（2a 混挂裁决：借得到光的全借，借不到的自造）：
+- 指令 = Vue 族 `v-if` / `v-for`（D10-1 落点；模板解析器直接复用 @vue/compiler，白拿）；插值 `{{ }}`。
+- 表达式 = 白名单操作枚举（glass-easel 同型哲学）：数据读取/运算/字面量可，**函数调用不可**——派生逻辑走 script 层 computed。
+- 事件 = `@tap="inc"` 主词 + `bindtap` 别名（规则表一行成本换微信迁移零改）。
+- `ol:` 扩展命名空间 = 只收"别家没有对应词"的概念（能力申报 `ol:requires="storage"`、未来端差标记——D21 Card 2 留位）。**反丑纪律**：ol: 与 v- 词表永不相交；ol: 不入侵基础指令域；交集非空 = CI 红。
 
+**数据流**（2c 成文）：单向——逻辑层 state 变更 → 编译期路径清单驱动每 tick 一次 setData；模板无双向糖（`model:` 在负清单），无 selectComponent 类节点访问。
+
+**响应式门面**（D21 Card 1 插座）：词表恒定 `reactive/ref/computed/watch`（自 'omnilet' 导入）；引擎实现按 flavor 编译矩阵插档（标准=@vue/reactivity，lite=最小信号集，后续切片）；**每档 API 删减表必须成文、越界编译期报错，不静默阉割**。
+
+**生命周期**（3' 裁决）：沿用微信原名 `onLoad/onShow/onHide/onUnload` + App 级 `onLaunch/onShow/onHide`——双线程语义对位，Vue 词（onMounted）不适配。
 ## 2. 负面清单（不支持，明确列出）
 
 | 不支持的形态 | 原因 | 替代写法 |
 |------|------|---------|
-| 运行时拼接组件名（`<{{ tagName }}>`） | 静态编译（D10-2）无法穷举 | 条件分支 `<view wx:if>` 全枚举 |
+| 运行时拼接组件名（`<{{ tagName }}>`） | 静态编译（D10-2）无法穷举 | 条件分支 `<view v-if>` 全枚举 |
 | 函数式子组件宏（模板内调函数返回模板） | 破坏静态可翻译性 | 组件 props + slot |
 | 跨文件动态 include | 同上 | 显式 import 组件 |
 | `<iframe>` 标签 | 双渲染路径语义不可对齐（标准模式=iframe / HMI 模式=OSR 实例，行为差异泄漏） | `<web-view src>`（D13-1；编译器对 iframe 自动翻译并告警） |
@@ -54,7 +51,7 @@
 
 ## 5. 文件级平台覆写（D9 路由）
 
-约定：`页面名.<platform>.ts` 覆写 `页面名.ts` 的同名导出（如 `index.wechat.ts`）。**产物零 #ifdef**（不变量②）——覆写发生在编译期文件解析层。
+约定：`文件名.<platform>.<后缀>` 覆写同名文件（如 `index.wechat.ts` 覆 `index.ts`；html/css/json 同理）。**产物零 #ifdef**（不变量②）——覆写发生在编译期文件解析层，且在 Babel 降级**之前**的 IR 阶段执行（D21 工程红线：dead-code 消除先于 lowering，mpx regenerator 坑为戒）。
 
 ## 6. 类型即生成物（D9 采纳）
 

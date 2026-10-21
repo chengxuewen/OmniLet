@@ -305,3 +305,9 @@
 - **形态小裁 ×5**：2a 混挂（v- 核心 + ol: 扩展 + 反丑三纪律：词表互斥/ol: 不入侵基础域/词表交集 CI 红；**重开条件=大版本重构有明确需求**，用户附加条款）；2b @tap 主词 + bindtap 别名；2c 单向性成文；3' 生命周期保留微信原名；4' .omnilet 主 + .vue 兼容输入。
 - **工程红线（研究捞获，非裁决但入库）**：dead-code 消除必须先于任何 Babel 降级（mpx regenerator 破静态消除实证）；不变量"产物零 #ifdef"是顺序保证不是位置保证。
 - **影响**：dsl-spec.md 本切片一并修订（§1 三处残债清 + 三原语接口节 + ol: 命名规范节 + 触发器记录）；omnilet-jsengine crate 契约扩三原语 trait；首切片功能不变（极薄样例、验收=结构+simulate+手工一次）。下一步 = 设计分节呈现 → spec 落盘 → writing-plans。
+
+### D21 same-day amendment (extension form — user challenged post-ruling, research reversed it)
+
+- **Reverses** D21 形态小裁 4' (.omnilet 主 + .vue 兼容): source form becomes **per-page standard split files** (`index.html/ts/css/json + app.json`), no dedicated extension at all.
+- **Evidence**: self-invented extensions survive only with a dedicated IDE-plugin team behind them (.vue→Volar, .mpx→mpx-vscode, .svelte→svelte-vscode); .ux (QuickApp) tooling pain is public; .cml died with its author. Taro proves .tsx-level standardness eats the whole tooling world for free. WeChat native is split files — zero migration surprise, AI corpus maximum, output shape 1:1, pipeline drops the SFC-unpack stage.
+- **Unaffected**: D10-1 (vocabulary = Vue family) never ruled file form; D21 mixed-vocab v-/ol: ruling, events, one-way, lifecycle all stand. dsl-spec.md rewritten to v0.2 accordingly (§1 split-form + vocab + one-way + socket facade + lifecycle; §5 override rule generalized to all four file types + IR-order red line restated).
