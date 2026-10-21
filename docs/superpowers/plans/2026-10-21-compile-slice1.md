@@ -54,7 +54,7 @@ packages/rule-schema/
 
 ---
 
-### Task T0: 环境、依赖与锁文件纪律
+### Task 0: 环境、依赖与锁文件纪律
 
 **Files:**
 - Modify: `compiler/package.json`（deps/devDeps/scripts）
@@ -71,7 +71,7 @@ packages/rule-schema/
 - [ ] **Step 5: 冒烟**：`compiler/src/smoke.test.ts` 保留；`pixi run pnpm -r test` 全绿；`pnpm-lock.yaml` 出现
 - [ ] **Step 6: Commit** `chore(compiler): pin toolchain deps for slice-1 (proxy install measured, lockfile committed)`
 
-### Task T1: simulate spike（30 分钟，行为档形状定形）
+### Task 1: simulate spike（30 分钟，行为档形状定形）
 
 **Files:**
 - Create: `/tmp/omnilet-sim-spike/`（一次性，不入库）+ `compiler/README.md` 追加一段结论
@@ -80,7 +80,7 @@ packages/rule-schema/
 - [ ] **Step 3:** 同法试 page 形态（`index.js = Page({...})`）——记录 load 是否真要求 Component 签名
 - [ ] **Step 4: 结论成文**（README.md：行为档最终形状=Component 式 or 两者皆可；jsdom 所需 API 面）→ commit `docs(compiler): simulate spike verdict (behavior tier shape decided by measurement)`
 
-### Task T2: 表合同 + 能力词表 + 归一化规范（rule-schema 包）
+### Task 2: 表合同 + 能力词表 + 归一化规范（rule-schema 包）
 
 **Files:**
 - Create: `packages/rule-schema/schema/table.schema.json`、`packages/rule-schema/capabilities.json`、`packages/rule-schema/NORMALIZATION.md`、`packages/rule-schema/src/schema.test.ts`（扩展）
@@ -97,7 +97,7 @@ packages/rule-schema/
 - [ ] **Step 3:** NORMALIZATION.md：LF、2 空格、wxml 属性序=表序驱动固定、禁时间戳/绝对路径；`assertNormalized` 按此实现并测（含一条故意 CRLF 输入必红的自证用例）
 - [ ] **Step 4:** Commit `feat(rule-schema): table contract, capability vocab source, golden normalization spec`
 
-### Task T3: counter 样例 fixture（共同输入）
+### Task 3: counter 样例 fixture（共同输入）
 
 **Files:**
 - Create: `compiler/tests/fixtures/counter/app.json`、`pages/index/index.{html,ts,css,json}`、`app.ts`
@@ -118,7 +118,7 @@ app.json:    { "pages": ["pages/index/index"] }
 - [ ] **Step 1:** 按上表创建（`{{ }}` 内表达式白名单、`:key` 语义均已在 dsl-spec v0.3）
 - [ ] **Step 2:** 无测试；commit `test(compiler): counter fixture frozen as golden input baseline`
 
-### Task T4: 诊断与负面条目（话术=数据）
+### Task 4: 诊断与负面条目（话术=数据）
 
 **Files:** Create `compiler/src/diag.ts`、`compiler/src/diag.test.ts`
 
@@ -129,7 +129,7 @@ app.json:    { "pages": ["pages/index/index"] }
 - [ ] **Step 3:** 变异自证：测试内临时改一条 hint → `renderExpect` 输出变化（证明话术是表渲染非硬编码双源）
 - [ ] **Step 4:** Commit `feat(compiler): negative entries as data, error copy rendered from table (+mutation self-proof)`
 
-### Task T5: 表加载三闸（tables.ts）
+### Task 5: 表加载三闸（tables.ts）
 
 **Files:** Create `compiler/src/tables.ts`、`tables.test.ts`、`compiler/rules/wechat.ts`（初版 tagMap 3 行 + golden 目录占位真实卷）
 
@@ -140,7 +140,7 @@ app.json:    { "pages": ["pages/index/index"] }
 - [ ] **Step 3:** 门禁咬合记录：三闸各自植入违规探针红一次（写进 tables.test.ts 用例名，永久回归）
 - [ ] **Step 4:** Commit `feat(compiler): table loader with 3 load-time gates, each probe-proven red-once`
 
-### Task T6: ingest（配对/覆写选择/申报收集）
+### Task 6: ingest（配对/覆写选择/申报收集）
 
 **Files:** Create `compiler/src/ingest.ts`、`ingest.test.ts`
 
@@ -150,7 +150,7 @@ app.json:    { "pages": ["pages/index/index"] }
 - [ ] **Step 2:** 实现（覆写=配对选择，红线 1 的前半；深消解在 T8 的 IR 区声明）
 - [ ] **Step 3:** Commit
 
-### Task T7: ir（模板 AST + 选项锁 + 金丝雀）
+### Task 7: ir（模板 AST + 选项锁 + 金丝雀）
 
 **Files:** Create `compiler/src/ir.ts`、`ir.test.ts`
 
@@ -161,7 +161,7 @@ app.json:    { "pages": ["pages/index/index"] }
 - [ ] **Step 3:** 金丝雀卷：把节点摘要序列化成 `tests/canary/ast-shape.json`，测试比对（@vue/compiler 升级 → 此卷变红 = §7 触发器的机器化）
 - [ ] **Step 4:** Commit
 
-### Task T8: rewrite 核心（visitor + 6 原语 + 白名单校验）
+### Task 8: rewrite 核心（visitor + 6 原语 + 白名单校验）
 
 **Files:** Create `compiler/src/rewrite.ts`、`rewrite.test.ts`；Modify `rules/wechat.ts`（directiveMap/eventMap/lifecycleMap/exprWhitelist/styleRules/capabilityRules 行 + 逐行金卷）
 
@@ -172,7 +172,7 @@ app.json:    { "pages": ["pages/index/index"] }
 - [ ] **Step 3:** 每加一行表 → 同时落 `tests/golden/gNNN/`（进=fixture 片段，出=outAst 序列化归一化文本）
 - [ ] **Step 4:** Commit（可拆两笔：原语+指令区 / 校验区）
 
-### Task T9: rewrite 收尾（classPrefix + 事件 + 全表逐行金卷升级）
+### Task 9: rewrite 收尾（classPrefix + 事件 + 全表逐行金卷升级）
 
 **Files:** Modify `rewrite.ts`（classPrefix 定点：模板 class 值改写与 wxss 前缀**同源词表**）；Modify `rules/wechat.ts`（@tap 事件行、lifecycle 直通、capabilityRules storage 行）；Create `rewrite.negative.test.ts`
 
@@ -183,7 +183,7 @@ app.json:    { "pages": ["pages/index/index"] }
 - [ ] **Step 3:** dsl-spec §2 表 ↔ NEGATIVE_ENTRIES 一致性测试（id 清单同源断言）
 - [ ] **Step 4:** Commit
 
-### Task T10: codegen 全家族 + compileProject + CLI + 结构档
+### Task 10: codegen 全家族 + compileProject + CLI + 结构档
 
 **Files:** Create `codegen/{wxml,wxss,js,appjson,manifest,dts}.ts`、`compileProject.ts`、`cli.ts`、`codegen.test.ts`、`structure.test.ts`；Modify `rules/wechat.ts`（g001-g003 占位卷→全链卷）
 
@@ -194,7 +194,7 @@ app.json:    { "pages": ["pages/index/index"] }
 - [ ] **Step 3:** CLI 薄壳 `omnilet build --dir --out`（转发+exit code），参数表 README 标"非冻结（§8 触发器）"
 - [ ] **Step 4:** 全链 golden 重录（含 .js 的 Component() 包裹形态——按 T1 判定），commit `feat(compiler): end-to-end wechat build, structural tier green`
 
-### Task T11: runtime 垫片 + vendor bundle + 行为档
+### Task 11: runtime 垫片 + vendor bundle + 行为档
 
 **Files:** Create `runtime/wechat/{facade,adapter,vendor-entry}.ts`、`vendor.ts`、`behavior.test.ts`（jsdom）
 
@@ -205,7 +205,7 @@ app.json:    { "pages": ["pages/index/index"] }
 - [ ] **Step 3:** 包体记录：vendor 体积数字写进 `compiler/README.md`（对照 uni-app 177KB 基线，spec §7 内部证据——无回归红线但留观测值）
 - [ ] **Step 4:** Commit `feat(runtime): wechat facade shim vendored; behavior tier on compiled artifact green (jsdom)`
 
-### Task T12: 门禁总装 + 文档收尾
+### Task 12: 门禁总装 + 文档收尾
 
 **Files:** Modify `compiler/tests/gates.test.ts`（新建）、本计划勾选、`docs/mvp-checklist.md`、`.agents/memorys/status.md`
 
