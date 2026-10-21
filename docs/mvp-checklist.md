@@ -8,7 +8,7 @@
 ## 一级验收条目（全部 ✅ = MVP 完成）
 
 ### A. 多端编译（D5 主体）
-- [ ] A1 统一 DSL/TS 样例工程 → **微信小程序包**可运行于微信开发者工具
+- [ ] A1 统一 DSL/TS 样例工程 → **微信小程序包**可运行于微信开发者工具 —— 二级首块完成（compile-slice1 机器三档全绿 + 四道门禁探针永久化）/ 一级 pending 人眼档（runbook: compiler/README.md）
 - [ ] A2 同一样例 → **Web 产物**在 Chrome/Firefox/Safari/Edge 可运行（组件→DOM 映射 + omnilet- 前缀）
 - [ ] A3 同一样例 → **自有容器包**在容器 SDK 内可运行
 - [ ] A4 编译器 = 表驱动架构（规则表独立于内核），Babel v1 内核跑通三目标管线

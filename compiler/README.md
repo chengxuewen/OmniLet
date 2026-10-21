@@ -119,3 +119,28 @@ fires `def.onLoad` at `created` and `def.onUnload` at `detached` itself,
 leaving the framework's own onLoad slot empty (single-call, live-verified
 in the behavior tier); `onShow/onHide` ride the top-level options for the
 real-device framework — simulate has no navigation driver for them.
+
+
+## 人眼档 runbook (A1)
+
+机器三档（单元/golden、结构、行为）全绿；行为档 = simulate 保真声明，**≠ 真机**。
+A1 一级勾选挂在下面这段人工实测上（做完在 `docs/mvp-checklist.md` A1 行勾一级 + 本仓库
+`.agents/memorys/status.md` 记一行结果）。
+
+```bash
+# 1. 编译 counter 样例到固定目录（产物 = 微信开发者工具可直接导入的包）
+pixi run pnpm --dir compiler exec tsx src/cli.ts \
+  --dir tests/fixtures/counter --out tests/out [--mode dev|prod]   # exit 0 = 零诊断
+```
+
+2. **Windows/Mac**：微信开发者工具 → 「导入项目」→ 目录选 `compiler/tests/out/`，
+   AppID 用「测试号」。模拟器应渲染：
+   - 一行计数文本，初始 `0`（`v-if="ready"` 恒真分支，样例无切换动作——看不到这段文本即回归）
+   - 两行列表项 `a`、`b`（v-for + :key）
+   - 一个 `+1` 按钮
+3. 点 `+1` 三次 → 计数 `0 → 3`（同一 tick 连点应合并为一次 setData，页面不报错、控制台零红）。
+4. 通过后：`docs/mvp-checklist.md` A1 一级勾选 + status 记「人眼档实测 pass <日期>」。
+
+产物构成（`tests/out/`）：`app.json`/`app.js` + `pages/index/index.{wxml,js,wxss,json}` +
+包根 `omnilet-runtime.js`（vendor 垫片）；`omnilet.d.ts`/`omnilet.manifest.json` 为侧车，
+微信侧忽略不报错。

@@ -3,7 +3,7 @@
 > 版本：**v2**（2026-10-21，按 spec-review 团队四路审查合裁修订；v1=358ecd5）
 > 裁决依赖：D5 / D9 / D10-1/2 / D17 / D21 + 同日修订
 > 证据：docs/reference/dsl-design-space.md + mpx / glass-easel / kbone / remax 四档（SHA 锚定）；§9 审查来源记录
-> 状态：待用户终审定稿
+> 状态：定稿已执行（plan T0-T12 完成 2026-10-21；收尾 commits 12e8c02..HEAD；人眼档 A1 一级 pending）
 
 ## 1. 目标与范围
 

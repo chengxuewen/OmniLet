@@ -22,14 +22,15 @@
 | 1b compile-side + console + test-matrix decisions | done (D5 + D6) |
 | 2 repo scaffold | done (D10/D11; scaffold-monorepo plan executed) |
 | 3 cef-backend slices (T1-T6/T8/T9) | green 2026-10-20 (072a12b); T7 expected-blocked (CEF-07) |
-| 4 compile-side first slice (D5 track) | brainstorming done 2026-10-21 (D21: engine socket + mixed DSL vocab + lib-API entry); design presentation next |
+| 4 compile-side first slice (D5 track) | done-slice1 2026-10-21 (compile-slice1 plan T0-T12): machine 三档 green (~205 compiler tests: unit/golden + structural + behavior-simulate) + gates.test.ts 四探针总装; 人眼档 pending (runbook compiler/README.md → A1 一级) |
 
 ## Next steps
 
-1. cef-backend plan COMPLETE (T1-T11; T7 landed same day after D20 ruling A — 6f18578). Next slices open: binary-envelope perf / winmac-wry / HMI-Renderer consumer contract / compile-side first slices (D5 轨道启动)
+1. cef-backend plan COMPLETE (T1-T11; T7 landed same day after D20 ruling A — 6f18578). Next slices open: binary-envelope perf / winmac-wry / HMI-Renderer consumer contract
 2. T7 bridge lane LIVE (D20-A, 6f18578: facade render-local, hits=3 echo=true); eval result-channel stays T7+ event-surface extension
 3. Renderer interface consumers: winmac-wry slice (D18: wry-Linux retired; win/mac keep wry)
 4. Post-T7 slice candidates: binary-envelope perf measurement (mvp-checklist) / HMI-Renderer consumer contract check / doc-audit quick pass
+5. compile-slice1 done pending 人眼档 (A1 一级挂微信开发者工具实测, runbook compiler/README.md)。slice-2 候选: setData 路径细粒度刷新 / styleRules 精修(selector 覆盖面) / web+container 目标规则表 (spec §1 明确不做 → 后续切片)
 
 ## Open items (doc-audit 2026-10-16 register — each with its trigger)
 
