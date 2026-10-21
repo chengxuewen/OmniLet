@@ -37,13 +37,24 @@ const withDir = (rows: RawTableSet['directiveMap']): RawTableSet => ({
 })
 
 describe('loadTables happy path (real wechat table)', () => {
-  it('loads the shipped wechat table without throwing; tagMap=3, other six empty', () => {
+  it('loads the shipped wechat table without throwing; tagMap=3, directive=3, event=1, whitelist=10', () => {
     const set = loadTables(wechatTables)
     expect(set.tagMap.map((r) => r.s)).toEqual(['view', 'text', 'button'])
-    expect(set.directiveMap).toEqual([])
-    expect(set.eventMap).toEqual([])
+    expect(set.directiveMap.map((r) => r.s)).toEqual(['v-if', 'v-for', ':key'])
+    expect(set.eventMap.map((r) => r.s)).toEqual(['@tap'])
     expect(set.lifecycleMap).toEqual([])
-    expect(set.exprWhitelist).toEqual([])
+    expect(set.exprWhitelist.map((r) => r.s)).toEqual([
+      'Identifier',
+      'MemberExpression',
+      'StringLiteral',
+      'NumericLiteral',
+      'BooleanLiteral',
+      'NullLiteral',
+      'BinaryExpression',
+      'LogicalExpression',
+      'UnaryExpression',
+      'ConditionalExpression',
+    ])
     expect(set.styleRules).toEqual([])
     expect(set.capabilityRules).toEqual([])
   })

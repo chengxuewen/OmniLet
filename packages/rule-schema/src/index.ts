@@ -22,7 +22,7 @@ export function assertNormalized(text: string): void {
   }
   const lines = text.split('\n')
   for (let i = 0; i < lines.length; i++) {
-    const lead = /^(\s*)/.exec(lines[i])[1]
+    const lead = /^\s*/.exec(lines[i] ?? '')?.[0] ?? ''
     if (lead.includes('\t') || lead.length % 2 !== 0) {
       throw new Error(`normalize: bad indent (${JSON.stringify(lead)}) at line ${i + 1} — 2-space steps only`)
     }

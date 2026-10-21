@@ -1,0 +1,2 @@
+<view wx:for="list" wx:for-item="item" wx:for-index="idx">
+</view>

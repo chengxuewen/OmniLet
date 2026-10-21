@@ -33,6 +33,9 @@ export type TableRow = {
   s: string
   t?: string
   primitive?: PrimName
+  /** attr-granular wrap flag (D5 wrapExpr): rename rows declaring true emit the
+   *  bare expression wrapped as `{{expr}}` in the output attribute value. */
+  wrap?: boolean
   golden: string
 }
 

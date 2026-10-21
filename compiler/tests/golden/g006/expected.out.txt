@@ -1,0 +1,5 @@
+<view wx:for="list" wx:for-item="item" wx:for-index="idx" wx:key="index">
+  <text>
+    {{item}}
+  </text>
+</view>

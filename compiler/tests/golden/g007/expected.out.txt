@@ -1,0 +1,3 @@
+<button bindtap="inc">
+  text:+1
+</button>
