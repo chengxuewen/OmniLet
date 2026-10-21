@@ -1,3 +1,3 @@
-<view v-if="ready" ol:requires="storage"><text>{{ count }}</text>
+<view v-if="ready" ol:requires="storage" class="box"><text>{{ count }}</text>
 <view v-for="(item, idx) in list" :key="idx"><text>{{ item }}</text></view>
 <button @tap="inc">+1</button></view>
