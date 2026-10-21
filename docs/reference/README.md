@@ -27,6 +27,11 @@
 | [uniapp.md](uniapp.md) | DCloud uni-app / uni-app x | 最大跨端框架：条件编译范式 + uts 编译到 Kotlin/Swift（最接近自有容器目标） | ★★★ |
 | [taro.md](taro.md) | 京东 Taro 3.x/4.x | React 语系跨端：编译时+运行时抹平混合架构 | ★★★ |
 | [chameleon.md](chameleon.md) | 滴滴 Chameleon | **已归档（实测 2023-01 停更）**：纯自研 DSL 无生态的死亡教训样本 | ★☆☆ |
+| [mpx.md](mpx.md) | 滴滴 mpx | Vue 语法 + **MobX** 引擎的判例档案：setData 双优化 / 四维条件编译 / regenerator 暗坑 | ★★★ |
+| [glass-easel.md](glass-easel.md) | 微信官方组件框架 | exparser 后继：三后端协议 + **Rust 模板编译器白名单 AST** + 同步 setData 判例 | ★★★ |
+| [kbone.md](kbone.md) | 微信官方适配器 | DOM/BOM shim 派自报 **1000 节点红线**——D10-2 静态路线的官方反证 | ★★☆ |
+| [remax.md](remax.md) | 阿里 Remax | **死亡四年**的 React 运行时派：turbo-render 静态提取 = 向静态派的收敛尸体 | ★☆☆ |
+| [dsl-design-space.md](dsl-design-space.md) | 横评综合 | 九轴 x occupants x 实测后果 + OmniLet 逐轴站位表（编译切片设计输入） | ★★★ |
 
 ### 自渲染引擎（自有容器自绘模式的架构同构体）— lane: engines
 

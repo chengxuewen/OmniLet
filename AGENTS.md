@@ -19,7 +19,7 @@ OmniLet/
 ├── PolyOrch/          # build orchestrator (git submodule gitee @5945f2a, D7; rust+node faces wire at scaffold)
 ├── pixi.toml + pixi.lock      # D11 environment single-source (rust+node+pnpm, locked)
 ├── Cargo.toml + Cargo.lock    # rust workspace (members under crates/)
-├── crates/                    # contract crates (render/webview/patch/channel/protocol/jsengine/cage) + omnilet-cef (CefBackend) + omnilet-container (bin) + omnilet-cli
+├── crates/                    # 8 crates: contract (render/webview/patch/channel/protocol/jsengine) + omnilet-cef (CefBackend, cage.rs inside) + omnilet-container (bin)
 ├── examples/demo-app/         # offline-package sample (manifest.json + index.html)
 ├── docs/              # ALL project knowledge lives here (see docs/AGENTS.md)
 │   ├── whitepaper.md          # product definition v1.0.1 (verbatim user text + errata, D2)
