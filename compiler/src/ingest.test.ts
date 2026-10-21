@@ -67,7 +67,32 @@ describe('ingest — platform override selection (dsl-spec §5)', () => {
     expect(pages[0].css).toContain('.a')
   })
 
-  it('bare .wechat.ts does not become a page without a .html anchor', () => {
+  it('html override parity: co-present index.wechat.html beats index.html (§5)', () => {
+    const root = makeDir('ovh')
+    makeDir('ovh/pages/index')
+    const pg = join(work, 'ovh/pages/index')
+    writeFileSync(join(pg, 'index.html'), '<view ol:requires="storage">base</view>')
+    writeFileSync(join(pg, 'index.wechat.html'), '<view ol:requires="network">wechat</view>')
+    writeFileSync(join(pg, 'index.ts'), 'x')
+    const { pages } = ingest(join(work, 'ovh'))
+    expect(pages).toHaveLength(1) // override shape never anchors a second page
+    expect(pages[0].html).toContain('wechat')
+    expect(pages[0].requires).toEqual(['network']) // requires collected from the WINNER
+  })
+
+  it('hyphen/case platform tokens never become page anchors (narrowed charset)', () => {
+    const root = makeDir('ovp')
+    makeDir('ovp/pages/index')
+    const pg = join(work, 'ovp/pages/index')
+    writeFileSync(join(pg, 'index.html'), '<view>base</view>')
+    writeFileSync(join(pg, 'index.Quick-App.html'), '<view>other-end</view>')
+    writeFileSync(join(pg, 'index.ts'), 'x')
+    const { pages } = ingest(join(work, 'ovp'), { platform: 'wechat' })
+    expect(pages).toHaveLength(1)
+    expect(pages[0].html).toContain('base') // not consumed, not an anchor, not picked for wechat
+  })
+
+  it('bare .wechat.html (no base) is an override with nothing to override — no page', () => {
     const root = makeDir('ov2')
     makeDir('ov2/pages/index')
     writeFileSync(join(work, 'ov2/pages/index/index.wechat.html'), '<view></view>')
@@ -76,6 +101,16 @@ describe('ingest — platform override selection (dsl-spec §5)', () => {
     expect(pages).toEqual([]) // anchors are .html only; documented in ingest.ts
   })
 })
+
+  it("single-quote ol:requires='...' supported; data-ol:requires rejected (boundary)", () => {
+    const root = makeDir('req4')
+    makeDir('req4/pages/index')
+    const pg = join(work, 'req4/pages/index')
+    // decoy attribute lives on the ROOT tag too — otherwise the boundary is never exercised
+    writeFileSync(join(pg, 'index.html'), "<view data-ol:requires=\"net\" ol:requires='camera'><text>hi</text></view>")
+    writeFileSync(join(pg, 'index.ts'), 'x')
+    expect(ingest(join(work, 'req4')).pages[0].requires).toEqual(['camera'])
+  })
 
 describe('ingest — optional/required files + degenerate cases', () => {
   it('missing css/json yields null fields (html+ts required, css+json optional)', () => {

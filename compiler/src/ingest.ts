@@ -52,12 +52,12 @@ export function ingest(root: string, options: IngestOptions = {}): IngestResult 
 
   // Anchor on .html: page units are conventionally index.{html,ts,css,json};
   // `*.wechat.html` is an override of an existing page, never a page of its own
-  // (test: 'bare .wechat.ts does not become a page'). Deep override semantics: T8.
+  // (test: 'bare .wechat.html (no base) ... — no page'). Deep override semantics: T8.
   const pagesRoot = join(root, 'pages')
   if (existsSync(pagesRoot)) {
     for (const file of walkHtmlFiles(pagesRoot)) {
-      const absBase = file.slice(0, -'.html'.length)
-      pages.push(pairPage(root, absBase, toUnitName(root, absBase), platform))
+      const name = toUnitName(root, file.slice(0, -'.html'.length))
+      pages.push(pairPage(root, name, platform))
     }
     pages.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
   }
@@ -75,9 +75,15 @@ export function ingest(root: string, options: IngestOptions = {}): IngestResult 
   }
 }
 
-/** Pair one page: html at `absBase.html` (exists by construction), others selected. */
-function pairPage(root: string, absBase: string, name: string, platform: string): PageUnit {
-  const html = readFileSync(`${absBase}.html`, 'utf8')
+/** Pair one page — all four parts route through selectFile (override parity, §5). */
+function pairPage(root: string, name: string, platform: string): PageUnit {
+  // html anchors the walker on its BASE file; content still loses to
+  // `index.<platform>.html` when co-present — §5 parity.
+  const htmlPath = selectFile(root, name, platform, 'html')
+  if (htmlPath === null) {
+    throw new IngestError(`page '${name}' is missing required file '${name}.html'`)
+  }
+  const html = readFileSync(htmlPath, 'utf8')
   const tsPath = selectFile(root, name, platform, 'ts')
   if (tsPath === null) {
     throw new IngestError(`page '${name}' is missing required file '${name}.ts'`)
@@ -114,7 +120,8 @@ function selectFile(root: string, relBase: string, platform: string, ext: string
 function collectRequires(html: string): string[] {
   const tag = /<[^!>][^>]*>/.exec(html) // skips <!-- comments -->; first real element tag
   if (!tag) return []
-  const m = /\bol:requires\s*=\s*("([^"]*)"|'([^']*)')/.exec(tag[0])
+  // (?<![-\w]) = attribute boundary: `data-ol:requires` must NOT match
+  const m = /(?<![-\w])ol:requires\s*=\s*("([^"]*)"|'([^']*)')/.exec(tag[0])
   if (!m) return []
   const value = m[2] ?? m[3] ?? ''
   return value
@@ -130,8 +137,8 @@ function walkHtmlFiles(dir: string, prefix = ''): string[] {
     const rel = prefix ? `${prefix}/${entry.name}` : entry.name
     // descend: the directory name IS the new path prefix (entry.name already in rel)
     if (entry.isDirectory()) out.push(...walkHtmlFiles(join(dir, entry.name), prefix ? rel : entry.name))
-    // `*.wechat.html` shape = override of a page, never a page anchor of its own
-    else if (entry.isFile() && entry.name.endsWith('.html') && !/\.[a-z0-9]+\.html$/.test(entry.name)) {
+    // `*.<platform>.html` shape (hyphen/case allowed) = override, never a page anchor
+    else if (entry.isFile() && entry.name.endsWith('.html') && !/\.[a-zA-Z][a-zA-Z0-9_-]*\.html$/.test(entry.name)) {
       out.push(join(dir, entry.name))
     }
   }
