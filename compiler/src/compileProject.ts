@@ -11,13 +11,16 @@
 //   omnilet.d.ts                OUT-sidecar facade types (TYPE tier input;
 //                               part of outDir, outside the PACKAGE file set —
 //                               WeChat never loads it)
-// mode='prod' is T11 territory (esbuild vendor minify); calling it now throws
-// loudly rather than silently emitting dev bytes (T10 review fix item 3).
+//   omnilet-runtime.js          esbuild vendor bundle (T11; the package-root
+//                               slot the emitted js require-heads point at)
+// mode='dev' ships a readable vendor bundle; mode='prod' ships the same code
+// esbuild-minified (the leg the T10 prod-throw promised); all other bytes are
+// mode-independent.
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { loadCapabilities } from '../../packages/rule-schema/src/index'
 import { checkCapabilities } from './capabilities'
-import { emitAppJs, emitPageJs } from './codegen/js'
+import { emitAppJs, emitPageJs, RUNTIME_VENDOR } from './codegen/js'
 import { emitPageJson, mergeAppJson } from './codegen/appjson'
 import { DTS_FILE, emitDts } from './codegen/dts'
 import { MANIFEST_FILE, emitManifest } from './codegen/manifest'
@@ -28,6 +31,7 @@ import { ingest } from './ingest'
 import { rewrite } from './rewrite'
 import { loadTables } from './tables'
 import { wechatTables } from '../rules/wechat'
+import { buildVendor } from './vendor'
 import type { PageUnit } from './ingest'
 import type { Diag } from './types'
 
@@ -39,7 +43,7 @@ export type CompileOptions = {
   /** slice 1 ships the wechat target only; web/container targets register their
    *  own rules+codegen modules in their slices (spec §1 明确不做). */
   target?: 'wechat'
-  /** omitted = 'dev'. 'prod' throws until T11 wires vendor minify. */
+  /** omitted = 'dev'. 'prod' = minified vendor bundle; other artifacts identical. */
   mode?: CompileMode
 }
 
@@ -52,9 +56,7 @@ export type CompileResult = {
 
 export async function compileProject(options: CompileOptions): Promise<CompileResult> {
   const { root, outDir } = options
-  if (options.mode === 'prod') {
-    throw new Error("compileProject: mode 'prod' not implemented in slice 1 (vendor esbuild minify lands T11); pass mode 'dev' or omit it")
-  }
+  const mode: CompileMode = options.mode ?? 'dev'
   const diagnostics: Diag[] = []
 
   // [station 1] rule tables (throws TableGateError 301-303 — compile cannot
@@ -86,6 +88,8 @@ export async function compileProject(options: CompileOptions): Promise<CompileRe
 
   files.set(MANIFEST_FILE, emitManifest(allRequires))
   files.set(DTS_FILE, emitDts())
+  // vendor slot (T11): static across projects — cached per mode in vendor.ts.
+  files.set(RUNTIME_VENDOR, await buildVendor(mode))
 
   const ok = diagnostics.length === 0
   const artifacts = [...files.keys()].sort()

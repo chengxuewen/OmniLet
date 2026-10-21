@@ -1,12 +1,16 @@
 import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 // Capability vocabulary single source (D17: first word = storage).
 // Consumers: compiler gate (T5) rejects capabilityRules rows for unknown words;
 // container capability check (T9/T10) reads the same file.
 export function loadCapabilities(): string[] {
-  const raw = JSON.parse(
-    readFileSync(new URL('../capabilities.json', import.meta.url), 'utf8')
-  ) as { capabilities: string[] }
+  // string-path arithmetic (NOT `new URL(..., import.meta.url)`): when a
+  // consumer runs under a jsdom-family environment the global URL belongs to
+  // another realm and node's fs rejects it (T11 behavior tier, measured).
+  const p = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'capabilities.json')
+  const raw = JSON.parse(readFileSync(p, 'utf8')) as { capabilities: string[] }
   return raw.capabilities
 }
 

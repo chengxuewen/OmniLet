@@ -15,13 +15,17 @@
 //        import { x[, y as z] } from 'omnilet'   ->  const { x, y: z, <factory> } =
 //                                                    require('<rel>omnilet-runtime.js')
 //        export default { ... }                  ->  <factory>({ ... })
-//     The facade contract (implemented by T11 at compiler/runtime/wechat/):
-//        createPage(config) — builds Component({ properties: {}, data, methods,
-//          ...lifecycles }) from { state, methods, ...pageLifecycleHooks };
-//          page-level lifecycle keys (onLoad/onShow/...) ride the Component page
-//          config per the lifecycleMap passthrough rows (WeChat accepts them
-//          there — *UNCERTAIN* until the T11 behavior tier exercises them live).
-//        createApp(config) — App(config) with the same state/methods handling.
+//     The facade contract — implemented at runtime/wechat/ (T11), bundled into
+//     RUNTIME_VENDOR by src/vendor.ts:
+//        createPage(config) — registers Component({ properties: {}, data,
+//          methods, created, detached, ...hooks }) from { state, methods,
+//          ...pageLifecycleHooks }; measured (behavior.test.ts): onLoad fires
+//          at created (adapter-side, single call — the framework's own onLoad
+//          slot is left empty), onUnload at detached; onShow/onHide ride the
+//          top-level config for the real device framework (simulate has no
+//          navigation driver).
+//        createApp(config) — App(config) when the global exists; no-App
+//          contexts (simulate/unit) fire onLaunch directly.
 //     Module contract beyond that is closed (slice 1): imports ONLY from 'omnilet'
 //     (named specifiers), exactly one `export default <object literal>`; anything
 //     else = 2xx shape escape, file not emitted.

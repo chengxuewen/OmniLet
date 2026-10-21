@@ -243,6 +243,7 @@ describe('mergeAppJson / emitPageJson / emitManifest / emitDts', () => {
 const ALL_FILES = [
   'app.js',
   'app.json',
+  'omnilet-runtime.js',
   'omnilet.d.ts',
   'omnilet.manifest.json',
   'pages/index/index.js',
@@ -268,9 +269,15 @@ describe('compileProject(counter) -> g100-counter-out full-chain golden', () => 
 
       for (const rel of ALL_FILES) {
         const produced = readFileSync(join(tmp, rel), 'utf8')
-        expect(() => assertNormalized(produced)).not.toThrow()
         const stored = readFileSync(join(goldenDir, rel), 'utf8')
-        expect(() => assertNormalized(stored)).not.toThrow()
+        // omnilet-runtime.js = esbuild-bundled vendor bytes: the 2-space-step +
+        // path-hygiene contract governs codegen-written text, and vue's internal
+        // indentation does not obey it. The bundle is still byte-pinned here and
+        // proven live by behavior.test.ts — normalization exemption, not pin loss.
+        if (rel !== 'omnilet-runtime.js') {
+          expect(() => assertNormalized(produced)).not.toThrow()
+          expect(() => assertNormalized(stored)).not.toThrow()
+        }
         expect({ file: rel, bytes: produced }).toEqual({ file: rel, bytes: stored })
       }
 
@@ -314,15 +321,26 @@ describe('capability refusal blocks the whole emit (4xx before write)', () => {
   })
 })
 
-// T10 review fix item 3: 'prod' is loud-not-implemented until T11 wires the
-// esbuild vendor-minify leg (silent dev-bytes-under-a-prod-label was the alt).
-it("mode 'prod' rejects at compileProject entry", async () => {
-  const tmp = mkdtempSync(join(tmpdir(), 'omnilet-prod-'))
-  try {
-    await expect(
-      compileProject({ root: join(SRC, '..', 'tests', 'fixtures', 'counter'), outDir: join(tmp, 'out'), mode: 'prod' }),
-    ).rejects.toThrow(/prod.*not implemented/)
-  } finally {
-    rmSync(tmp, { recursive: true, force: true })
-  }
+// T11: 'prod' now builds — the mode leg it promised is the esbuild vendor
+// minify (all other artifact bytes are mode-independent by contract).
+describe("mode 'prod' = minified vendor, identical js", () => {
+  it('prod builds; vendor smaller than dev; page js byte-identical', async () => {
+    const tmpDev = mkdtempSync(join(tmpdir(), 'omnilet-mode-dev-'))
+    const tmpProd = mkdtempSync(join(tmpdir(), 'omnilet-mode-prod-'))
+    try {
+      const root = join(SRC, '..', 'tests', 'fixtures', 'counter')
+      const dev = await compileProject({ root, outDir: tmpDev, mode: 'dev' })
+      const prod = await compileProject({ root, outDir: tmpProd, mode: 'prod' })
+      expect(dev.ok && prod.ok).toBe(true)
+      const devV = readFileSync(join(tmpDev, 'omnilet-runtime.js'), 'utf8')
+      const prodV = readFileSync(join(tmpProd, 'omnilet-runtime.js'), 'utf8')
+      expect(devV).toContain('/*! omnilet-runtime') // banner survives in dev
+      expect(prodV).toContain('/*! omnilet-runtime') // /*! banner survives minify
+      expect(prodV.length).toBeLessThan(devV.length)
+      expect(readFileSync(join(tmpProd, 'pages/index/index.js'), 'utf8')).toBe(readFileSync(join(tmpDev, 'pages/index/index.js'), 'utf8'))
+    } finally {
+      rmSync(tmpDev, { recursive: true, force: true })
+      rmSync(tmpProd, { recursive: true, force: true })
+    }
+  })
 })

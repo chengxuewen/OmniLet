@@ -19,6 +19,7 @@ const SCHEMA = join(PKG, '..', 'packages', 'rule-schema', 'schema')
 const EXPECTED_TREE = [
   'app.js',
   'app.json',
+  'omnilet-runtime.js',
   'omnilet.d.ts',
   'omnilet.manifest.json',
   'pages/index/index.js',

@@ -78,9 +78,44 @@ pixi run pnpm --dir compiler exec tsx src/cli.ts --dir tests/fixtures/counter --
 `compileProject({root, outDir, target, mode})` is the programmatic entry
 (orchestration: ingest -> parse -> table rewrite -> codegen -> fail-closed write).
 **参数非冻结（§8 trigger "CLI 参数冻结 = 管线定型后"）**: flag names, the tsx-based
-run route, and `--mode prod` (a loud not-implemented throw until T11 wires the
-esbuild vendor-minify leg — never silent dev-bytes under a prod label) are
-reopen-able; the emitted *package format* (package files + omnilet.d.ts sidecar
-+ the `omnilet-runtime.js` vendor slot at the package root that T11 must fill) is
+run route, and the exact dev/prod vendor split (T11 wired the esbuild minify leg:
+prod = minified vendor, all other bytes mode-independent) are reopen-able; the
+emitted *package format* (package files + omnilet.d.ts sidecar + the
+`omnilet-runtime.js` vendor slot at the package root) is
 the frozen part — pinned by the `g100-counter-out` goldens + structural.test.ts.
 Re-record full-chain goldens with `RECORD_GOLDEN=1` (measured bytes only).
+
+
+## runtime vendor shim + behavior tier (Task 11)
+
+The `omnilet-runtime.js` package-root slot is an esbuild CJS bundle of
+`runtime/wechat/{facade,adapter,vendor-entry}.ts` (@vue/reactivity 3.5.44,
+pinned). Measured bytes for the counter-fixture build:
+
+| mode | vendor bytes |
+|---|---|
+| dev (readable) | 51,117 |
+| prod (esbuild minify) | 20,360 |
+
+Observation only (no regression redline): uni-app ships a 177 KB
+vue.runtime fork per mini-app package (`docs/reference/uniapp-compiler-internals.md`
+§measured) — our slice-1 shim is ~1/9 of that in prod. Not like-for-like:
+uni-mp-vue carries the full runtime-core component system, we bundle the
+reactivity kernel + this slice's adapter only.
+
+Behavior tier (test-matrix T2, runs the COMPILED artifact, nothing
+hand-written): `src/behavior.test.ts` (jsdom) — `compileProject` ->
+`simulate.load` of the emitted tree -> initial `0/a/b`, bindtap touch
+sequence -> `1`, same-tick double inc -> `3` via one flush, detach stops
+the effect; plus adapter unit asserts (plain snapshot, onLoad single-call,
+one setData per tick). Env notes: jsdom swaps `Uint8Array`/`URL` into its
+own realm — esbuild's import invariant and node's `fileURLToPath` reject
+cross-realm objects there, hence the realm-restore + string-path patterns
+in `behavior.test.ts`/`vendor.ts`/`rule-schema/src/index.ts` (measured).
+
+Lifecycle finding (closes the T10 *UNCERTAIN*): the page js runs as a
+Component (simulate has no Page runtime, README Task-1), so the adapter
+fires `def.onLoad` at `created` and `def.onUnload` at `detached` itself,
+leaving the framework's own onLoad slot empty (single-call, live-verified
+in the behavior tier); `onShow/onHide` ride the top-level options for the
+real-device framework — simulate has no navigation driver for them.
