@@ -85,6 +85,15 @@ export function vocabOverlap(rows: Iterable<TableRow>): string[] {
   return [...olWords].filter((w) => vWords.has(w)).sort()
 }
 
+/**
+ * Typed constant for css codegen (T10): the styleRules selector whitelist row names
+ * (`selector:*` family, dsl-spec §3). Table is data — a name absent from this list is
+ * an illegal selector. Exported so the css side reads rows, never re-encodes the list.
+ */
+export function selectorWhitelist(tables: TableSet): string[] {
+  return tables.styleRules.filter((r) => r.s.startsWith('selector:')).map((r) => r.s)
+}
+
 function allRows(set: RawTableSet): TableRow[] {
   return TABLE_KINDS.flatMap((kind) => set[kind])
 }

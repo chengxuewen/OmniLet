@@ -83,9 +83,9 @@ export function serializeAst(node: OutNode | readonly OutNode[], depth = 0): str
     serInto(node as OutNode, depth, lines)
   }
   return `${lines.join('\n')}\n`
-  }
+}
 
-    function serInto(node: OutNode, depth: number, lines: string[]): void {
+function serInto(node: OutNode, depth: number, lines: string[]): void {
   const pad = '  '.repeat(depth)
   switch (node.kind) {
     case 'el': {
@@ -164,25 +164,55 @@ export type PrimJob = {
 
 export type PrimResult = { attrs: OutAttr[]; diagnostics: Diag[]; paths: string[]; scope?: ForScope }
 
-function gateAttr(job: PrimJob, row: TableRow, attrName: string, wrap: boolean): PrimResult {
-  const violation = gateExpr(job.raw, job.whitelist)
-  if (violation) return { attrs: [], diagnostics: [exprEscape(violation)], paths: [] }
+/**
+ * Parse + table-validate + path-collect one attribute expression in ONE parse pass
+ * (T9 fold of T8 LOW-1: no dead row param, no double parse). Failure returns the
+ * 209 escape diag with the precise reason; success emits the attr.
+ */
+function gateAttr(job: PrimJob, attrName: string, wrap: boolean): PrimResult {
   const parsed = parseExpr(job.raw)
-  const paths = parsed.ok ? collectPaths(parsed.node, new Set(job.scope ? [job.scope.item, job.scope.index] : [])) : []
+  if (!parsed.ok) return { attrs: [], diagnostics: [exprEscape(parsed.reason)], paths: [] }
+  const violation = validateExpr(parsed.node, job.whitelist)
+  if (violation) return { attrs: [], diagnostics: [exprEscape(violation)], paths: [] }
+  const paths = collectPaths(parsed.node, scopeSet(job.scope))
   const value = wrap ? `{{${job.raw}}}` : job.raw
   return { attrs: [{ k: attrName, v: value }], diagnostics: [], paths }
+}
+
+/** Shared word-prefixing core: template rewrite + css codegen (T10) prefix from
+ * this one function over the one styleRules `class` row = same-source word table. */
+function prefixWords(value: string, prefix: string, exempt: ReadonlySet<string>): string {
+  return value
+    .split(/\s+/)
+    .filter((w) => w !== '')
+    .map((w) => (exempt.has(w) || w.startsWith(prefix) ? w : `${prefix}${w}`))
+    .join(' ')
+}
+
+/**
+ * Template-side static class rewrite (D5 add3-1: 编译器自动加前缀，业务手写免前缀).
+ * `box` -> `omnilet-box`; words with an exempt styleRules row and already-prefixed
+ * words pass through. The prefix lives in the styleRules `class` row (primitive
+ * classPrefix) — css codegen reads the SAME row, so template classes and prefixed
+ * wxss selectors can never drift apart. Only static class values are visible here;
+ * dynamic :class strings are author responsibility (§2 替代写法: script 层切换 class 名).
+ */
+export function classPrefix(value: string, tables: TableSet): string {
+  const row = tables.styleRules.find((r) => r.primitive === 'classPrefix')
+  const exempt = new Set(tables.styleRules.filter((r) => r.exempt === true).map((r) => r.s))
+  return prefixWords(value, row?.t ?? 'omnilet-', exempt)
 }
 
 /**
  * The fixed-point behavior table: one entry per PrimName (closed 8-value enum).
  * Rows reference these by `primitive`; the visitor dispatches, no per-row logic.
- * classPrefix/lifecyclePassthrough ship minimal implementations now (rows land
- * in T9 / the js side) — present to keep the Record exhaustively mapped.
+ * classPrefix is wired into the static-class path (T9); lifecyclePassthrough is the
+ * js-side identity whose rows land in T9, consumed by codegen (T10).
  */
 export const PRIMITIVES: Record<NonNullable<TableRow['primitive']>, (job: PrimJob, row: TableRow) => PrimResult> = {
-  rename: (job, row) => gateAttr(job, row, row.t ?? job.name, row.wrap === true),
+  rename: (job, row) => gateAttr(job, row.t ?? job.name, row.wrap === true),
 
-  wrapExpr: (job, row) => gateAttr(job, row, row.t ?? job.name, true),
+  wrapExpr: (job, row) => gateAttr(job, row.t ?? job.name, true),
 
   passthrough: (job, row) => ({ attrs: [{ k: row.t ?? job.name, v: job.raw }], diagnostics: [], paths: [] }),
 
@@ -199,7 +229,7 @@ export const PRIMITIVES: Record<NonNullable<TableRow['primitive']>, (job: PrimJo
     const item = itemRaw ?? 'item'
     const index = indexRaw ?? 'index'
     const scope: ForScope = { item, index }
-    const gated = gateAttr({ ...job, raw: (listRaw ?? '').trim(), scope }, row, row.t ?? 'wx:for', false)
+    const gated = gateAttr({ ...job, raw: (listRaw ?? '').trim(), scope }, row.t ?? 'wx:for', false)
     if (gated.diagnostics.length > 0) return gated
     return {
       attrs: [...gated.attrs, { k: 'wx:for-item', v: item }, { k: 'wx:for-index', v: index }],
@@ -243,10 +273,11 @@ export const PRIMITIVES: Record<NonNullable<TableRow['primitive']>, (job: PrimJo
     return { attrs: [{ k: name, v: job.raw }], diagnostics: [], paths: [] }
   },
 
-  // T9 row lands; minimal prefix rewrite now (template side of the class/wxss
-  // same-source rule). Exemption word list arrives with the styleRules rows.
+  // Prefixes every word of the static class value; the exempt set only exists in a
+  // full table, so the visitor path calls classPrefix(value, tables) instead — both
+  // share prefixWords, this direct form pins the row-driven prefix itself.
   classPrefix: (job, row) => ({
-    attrs: [{ k: 'class', v: `${row.t ?? 'omnilet-'}${job.raw}` }],
+    attrs: [{ k: 'class', v: prefixWords(job.raw, row.t ?? 'omnilet-', new Set()) }],
     diagnostics: [],
     paths: [],
   }),
@@ -279,7 +310,7 @@ export function rewrite(ast: RootNode, tables: TableSet): RewriteResult {
     ...tables.eventMap.map((r, i) => [r.s, tables.directiveMap.length + i] as const),
   ])
   const whitelist = buildExprWhitelist(tables.exprWhitelist)
-  const ctx: RewriteCtx = { tagIdx, dirIdx, evIdx, emissionRank, whitelist, diagnostics: [], pathSet: new Set() }
+  const ctx: RewriteCtx = { tables, tagIdx, dirIdx, evIdx, emissionRank, whitelist, diagnostics: [], pathSet: new Set() }
   const root = ast as unknown as PRoot
   const outAst = walkChildren(root.children ?? [], null, ctx)
   return {
@@ -290,6 +321,7 @@ export function rewrite(ast: RootNode, tables: TableSet): RewriteResult {
 }
 
 type RewriteCtx = {
+  tables: TableSet
   tagIdx: Map<string, TableRow>
   dirIdx: Map<string, TableRow>
   evIdx: Map<string, TableRow>
@@ -383,8 +415,14 @@ function walkElement(el: PNode, outerScope: ForScope, ctx: RewriteCtx): OutNode 
       continue
     }
     if (p.name === 'bind' && (p.arg?.content === 'class' || p.arg?.content === 'style')) {
-      ctx.diagnostics.push(negative('class-obj'))
-      continue
+      // §2 class-obj covers ONLY object/array literal syntax (T9 ruling); any other
+      // expression shape falls through to the table route (rename+wrap rows :class/
+      // :style) where the ordinary expr gate gives 209 when needed.
+      const litCheck = parseExpr(p.exp?.content ?? '')
+      if (!litCheck.ok && /^(?:object|array) literal/.test(litCheck.reason)) {
+        ctx.diagnostics.push(negative('class-obj'))
+        continue
+      }
     }
     const row = token.startsWith('@') ? ctx.evIdx.get(token) : ctx.dirIdx.get(token)
     if (!row) {
@@ -407,13 +445,23 @@ function walkElement(el: PNode, outerScope: ForScope, ctx: RewriteCtx): OutNode 
     if (result.attrs.length > 0) mapped.push({ rank: ctx.emissionRank.get(token) ?? 0, attrs: result.attrs })
   }
 
-  // Static attributes pass through verbatim (ol: metadata belongs to ingest/T6,
-  // never to WXML output). Emitted after mapped attrs, in source order.
+  // Static attributes: verbatim except (a) ol: metadata stripped (belongs to ingest),
+  // (b) `class` values get the styleRules prefix (classPrefix), (c) `is="{{…}}"`
+  // rejects as NEGATIVE dynamic-component. Emitted after mapped attrs, source order.
   const plain: OutAttr[] = []
   for (const p of props) {
     if (p.type !== ATTRIBUTE || !p.name) continue
     if (p.name.startsWith('ol:')) continue
-    plain.push({ k: p.name, v: p.value?.content ?? '' })
+    const v = p.value?.content ?? ''
+    if (p.name === 'is' && /\{\{/.test(v)) {
+      // 运行时拼接组件名 (§2 dynamic-component, 101): parse keeps the attr value as
+      // literal text, so `{{` here is the concat form. Attr dropped, element kept
+      // (same conservative granularity as model-sugar). The `<{{tag}}>` spelling is
+      // reddened earlier by the LOCKED parser itself (1xx parse family).
+      ctx.diagnostics.push(negative('dynamic-component'))
+      continue
+    }
+    plain.push({ k: p.name, v: p.name === 'class' ? classPrefix(v, ctx.tables) : v })
   }
 
   const attrs = [

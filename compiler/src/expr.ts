@@ -73,7 +73,9 @@ function tokenize(src: string): Tok[] | string {
   return toks
 }
 
-const RESERVED_WORDS = new Set(['in', 'instanceof', 'new', 'typeof', 'void', 'delete', 'await', 'yield'])
+// 'this' joins the rejection set (T9 fold of T8 LOW-4): a template expression must
+// never reach instance state — data flows only through the page/Component data paths.
+const RESERVED_WORDS = new Set(['in', 'instanceof', 'new', 'typeof', 'void', 'delete', 'await', 'yield', 'this'])
 
 class ExprParser {
   private pos = 0

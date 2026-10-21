@@ -1,8 +1,9 @@
 // Task 8: per-primitive worked examples (the brief's "附录实例" obligation, encoded).
 // Each primitive gets (a) a direct PRIMITIVES call pinning its fixed-point behavior
 // and (b) an end-to-end fragment through rewrite() where a shipped row exercises it.
-// classPrefix / lifecyclePassthrough have no rows yet (T9) — their entries are
-// pinned by direct calls so the closed Record<PrimName, fn> stays exhaustively tested.
+// classPrefix/lifecyclePassthrough rows landed in T9: the visitor paths are pinned
+// in rewrite.test.ts / rewrite.negative.test.ts; direct calls keep the closed
+// Record<PrimName, fn> exhaustively tested here.
 import { describe, expect, it } from 'vitest'
 import { PRIMITIVES, rewrite, serializeAst, type ForScope, type PrimJob } from './rewrite'
 import { buildExprWhitelist } from './expr'
@@ -92,8 +93,8 @@ describe('wrapExpr — attribute-granular wrapping (D5 mixed mode)', () => {
     expect(PRIMITIVES.wrapExpr(job('ready'), row).attrs).toEqual([{ k: 'hidden', v: '{{ready}}' }])
   })
 
-  it('direct: wrap:false row passes the value through bare (wx:for list mode)', () => {
-    const row = synthetic('v-test', 'bare', 'wrapExpr')
+  it('direct (rename, no wrap flag): bare value passes through — wrap is row data, not primitive behavior', () => {
+    const row = synthetic('v-test', 'bare', 'rename')
     expect(PRIMITIVES.rename(job('list'), row).attrs).toEqual([{ k: 'bare', v: 'list' }])
   })
 })
@@ -179,14 +180,18 @@ describe('valueMap — @tap -> bindtap, `.stop` -> catchtap (parameterised renam
   })
 })
 
-describe('classPrefix / lifecyclePassthrough — minimal entries (rows land in T9)', () => {
-  it('classPrefix prefixes the template-side class value from row.t', () => {
+describe('classPrefix / lifecyclePassthrough — T9 rows live', () => {
+  it('classPrefix prefixes every word; already-prefixed words pass through (idempotent)', () => {
     const row = synthetic('class', 'omnilet-', 'classPrefix')
     expect(PRIMITIVES.classPrefix(job('box'), row).attrs).toEqual([{ k: 'class', v: 'omnilet-box' }])
+    expect(PRIMITIVES.classPrefix(job('box wide'), row).attrs).toEqual([{ k: 'class', v: 'omnilet-box omnilet-wide' }])
+    expect(PRIMITIVES.classPrefix(job('omnilet-box'), row).attrs).toEqual([{ k: 'class', v: 'omnilet-box' }])
   })
-  it('lifecyclePassthrough keeps the hook word (词表直通 witness)', () => {
-    const row: TableRow = { kind: 'lifecycleMap', s: 'onLoad', primitive: 'lifecyclePassthrough', golden: 'unused' }
-    expect(PRIMITIVES.lifecyclePassthrough(job('onLoad'), row).attrs).toEqual([{ k: 'onLoad', v: 'onLoad' }])
+  it('lifecyclePassthrough keeps every shipped hook word (词表直通 witness, all 5 rows)', () => {
+    expect(tables.lifecycleMap.map((r) => r.s)).toEqual(['onLoad', 'onShow', 'onHide', 'onUnload', 'onLaunch'])
+    for (const row of tables.lifecycleMap) {
+      expect(PRIMITIVES.lifecyclePassthrough(job(row.s), row).attrs).toEqual([{ k: row.s, v: row.s }])
+    }
   })
 })
 
@@ -201,6 +206,6 @@ describe('attribute emission order is table-driven, not source-driven', () => {
 
   it('mapped attrs precede plain attrs; plain attrs keep source order', () => {
     const out = run('<view id="a" v-if="ready" class="box"></view>')
-    expect(serializeAst(out.outAst)).toBe('<view wx:if="{{ready}}" id="a" class="box">\n</view>\n')
+    expect(serializeAst(out.outAst)).toBe('<view wx:if="{{ready}}" id="a" class="omnilet-box">\n</view>\n')
   })
 })

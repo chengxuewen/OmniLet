@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   loadTables,
+  selectorWhitelist,
   TableGateError,
   vocabOverlap,
   KNOWN_V_PREFIX,
@@ -37,12 +38,12 @@ const withDir = (rows: RawTableSet['directiveMap']): RawTableSet => ({
 })
 
 describe('loadTables happy path (real wechat table)', () => {
-  it('loads the shipped wechat table without throwing; tagMap=3, directive=3, event=1, whitelist=10', () => {
+  it('loads the shipped wechat table without throwing; tagMap=3, directive=5, event=1, lifecycle=5, whitelist=10, style=5, capability=1', () => {
     const set = loadTables(wechatTables)
     expect(set.tagMap.map((r) => r.s)).toEqual(['view', 'text', 'button'])
-    expect(set.directiveMap.map((r) => r.s)).toEqual(['v-if', 'v-for', ':key'])
+    expect(set.directiveMap.map((r) => r.s)).toEqual(['v-if', 'v-for', ':key', ':class', ':style'])
     expect(set.eventMap.map((r) => r.s)).toEqual(['@tap'])
-    expect(set.lifecycleMap).toEqual([])
+    expect(set.lifecycleMap.map((r) => r.s)).toEqual(['onLoad', 'onShow', 'onHide', 'onUnload', 'onLaunch'])
     expect(set.exprWhitelist.map((r) => r.s)).toEqual([
       'Identifier',
       'MemberExpression',
@@ -55,8 +56,12 @@ describe('loadTables happy path (real wechat table)', () => {
       'UnaryExpression',
       'ConditionalExpression',
     ])
-    expect(set.styleRules).toEqual([])
-    expect(set.capabilityRules).toEqual([])
+    expect(set.styleRules.map((r) => r.s)).toEqual(['rpx', 'class', 'selector:class', 'selector:tag', 'selector:pseudo'])
+    expect(set.capabilityRules.map((r) => r.s)).toEqual(['storage'])
+  })
+
+  it('selectorWhitelist exposes the selector:* styleRules rows for css codegen (typed accessor, T10 consumer)', () => {
+    expect(selectorWhitelist(loadTables(wechatTables))).toEqual(['selector:class', 'selector:tag', 'selector:pseudo'])
   })
 
   it('defaultGoldenRoot points at compiler/tests/golden (g001-g003 exist)', () => {

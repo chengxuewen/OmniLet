@@ -47,8 +47,8 @@ describe('per-row positive goldens (rewrite + serializeAst byte contract)', () =
     }
   }
 
-  it('all 17 row goldens g001-g017 are covered by the loop', () => {
-    expect(seen.size).toBe(17)
+  it('all 19 row goldens g001-g019 are covered by the loop', () => {
+    expect(seen.size).toBe(19)
   })
 })
 
@@ -64,7 +64,7 @@ describe('counter fixture template rewrites in one pass', () => {
     const out = compileFragment(fixtureHtml)
     expect(out.diagnostics).toEqual([])
     expect(serializeAst(out.outAst)).toBe(
-      '<view wx:if="{{ready}}" class="box">\n' +
+      '<view wx:if="{{ready}}" class="omnilet-box">\n' +
         '  <text>\n' +
         '    {{count}}\n' +
         '  </text>\n' +
@@ -106,6 +106,7 @@ describe('expression whitelist rejects off-grammar shapes with 2xx (never throws
     ['{{ list[0] }}', /computed access/],
     ['{{ `hi ${name}` }}', /template literal/],
     ['{{ a@b }}', /unexpected character/],
+    ['{{ this.x }}', /'this' not in whitelist/],
   ]
 
   it.each(rejects)('%s drops the node and reports reason', (html, reasonRe) => {
@@ -145,8 +146,8 @@ describe('NEGATIVE entries drive their codes through rewrite (话术单源)', ()
     expect(compileFragment('<button @tap="go(a)"></button>').diagnostics.map((d) => d.code)).toEqual([205])
   })
 
-  it('the emitted copy equals the NEGATIVES table render (no second source)', () => {
-    const out = compileFragment('<view :class="a + b"></view>')
+  it('the emitted copy equals the NEGATIVE table render (no second source)', () => {
+    const out = compileFragment('<view :style="[a, b]"></view>')
     const d = out.diagnostics.find((x) => x.code === 202)!
     const entry = NEGATIVE_ENTRIES.find((e) => e.code === 202)!
     expect(`${d.code} ${d.message} hint: ${d.hint}`).toBe(renderExpect(entry.id))
@@ -191,6 +192,13 @@ describe('kill-probes: output is table-driven (mutate row -> output moves)', () 
     const probe = rewrite(buildTemplateAst('<text>{{ count }}</text>', 'probe').ast, loadTables(mutated))
     expect(probe.diagnostics.map((d) => d.code)).toEqual([209])
     expect(probe.diagnostics[0]!.message).toMatch(/Identifier not in exprWhitelist/)
+  })
+
+  it('styleRules class-prefix row t=probe- moves the template class output (table-driven)', () => {
+    const mutated = cloneTables()
+    mutated.styleRules.find((r) => r.s === 'class')!.t = 'probe-'
+    const probe = rewrite(buildTemplateAst('<view class="box wide"></view>', 'probe').ast, loadTables(mutated))
+    expect(serializeAst(probe.outAst)).toBe('<view class="probe-box probe-wide">\n</view>\n')
   })
 
   it('restored tables reproduce the shipped goldens byte-for-byte (probe is not permanent)', () => {
