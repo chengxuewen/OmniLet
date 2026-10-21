@@ -12,6 +12,12 @@
 
 Listing options for the user to choose without the above analysis is forbidden.
 
+## C2: Conversation symbol ban - circled numbers forbidden
+
+**Constraint**: in all user-facing replies (and docs intended for the user's eye), NEVER use circled-number characters (U+2460 U+2461 ... U+24FF) or similar dingbat glyphs - they render illegibly in the user's environment (user ruling 2026-10-21). Use plain ASCII instead: `A / B / C` for option cards, `1. 2. 3.` for ordered lists, `-` for bullets. Applies to adjudication cards, brainstorming questions, status tables - everywhere.
+
+**Check**: `printf '%s' "$REPLY_TEXT" | grep -qP '[\x{2460}-\x{24FF}]'` must find nothing.
+
 ## C9: Automatic lesson consolidation
 
 **Constraint**: problems, lessons, and experience discovered during development must be proactively written into the corresponding memory documents within the same session turn.
