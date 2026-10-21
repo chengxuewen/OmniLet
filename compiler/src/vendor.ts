@@ -27,8 +27,12 @@ export async function buildVendor(mode: CompileMode): Promise<string> {
     bundle: true,
     format: 'cjs', // simulate/jsthird execute CJS (T10 contract §2; ESM would need build-npm — spec §2 forbids)
     platform: 'neutral',
-    target: 'es2017', // WeChat base-library floor + node/jshdom both parse this
+    target: 'es2017', // WeChat base-library floor + node/jsdom both parse this
     minify: mode === 'prod',
+    // vue dev-code carries `process.env.NODE_ENV` guards; WeChat devices have
+    // no `process` global (found via the no-DOM vm probe — jsdom masked it
+    // because node's process leaks through). define bakes the mode value in.
+    define: { 'process.env.NODE_ENV': JSON.stringify(mode === 'prod' ? 'production' : 'development') },
     write: false,
     legalComments: 'none',
     banner: {

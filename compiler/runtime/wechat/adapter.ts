@@ -57,7 +57,6 @@ export function createPage(def: PageDef): AnyRecord {
     },
     detached(this: WxInstance) {
       runner?.effect.stop()
-      stop?.()
       def.onUnload?.call(this)
     },
   }

@@ -51,8 +51,8 @@ function makeMap(str) {
   for (const key of str.split(",")) map[key] = 1;
   return (val) => val in map;
 }
-var EMPTY_OBJ = !!(process.env.NODE_ENV !== "production") ? Object.freeze({}) : {};
-var EMPTY_ARR = !!(process.env.NODE_ENV !== "production") ? Object.freeze([]) : [];
+var EMPTY_OBJ = true ? Object.freeze({}) : {};
+var EMPTY_ARR = true ? Object.freeze([]) : [];
 var NOOP = () => {
 };
 var extend = Object.assign;
@@ -174,7 +174,7 @@ var ReactiveEffect = class {
     try {
       return this.fn();
     } finally {
-      if (!!(process.env.NODE_ENV !== "production") && activeSub !== this) {
+      if (activeSub !== this) {
         warn(
           "Active effect was not restored correctly - this is likely a Vue internal bug."
         );
@@ -352,7 +352,7 @@ function removeSub(link, soft = false) {
     nextSub.prevSub = prevSub;
     link.nextSub = void 0;
   }
-  if (!!(process.env.NODE_ENV !== "production") && dep.subsHead === link) {
+  if (dep.subsHead === link) {
     dep.subsHead = nextSub;
   }
   if (dep.subs === link) {
@@ -440,7 +440,7 @@ var Dep = class {
     this.key = void 0;
     this.sc = 0;
     this.__v_skip = true;
-    if (!!(process.env.NODE_ENV !== "production")) {
+    if (true) {
       this.subsHead = void 0;
     }
   }
@@ -476,7 +476,7 @@ var Dep = class {
         }
       }
     }
-    if (!!(process.env.NODE_ENV !== "production") && activeSub.onTrack) {
+    if (activeSub.onTrack) {
       activeSub.onTrack(
         extend(
           {
@@ -496,7 +496,7 @@ var Dep = class {
   notify(debugInfo) {
     startBatch();
     try {
-      if (!!(process.env.NODE_ENV !== "production")) {
+      if (true) {
         for (let head = this.subsHead; head; head = head.nextSub) {
           if (head.sub.onTrigger && !(head.sub.flags & 8)) {
             head.sub.onTrigger(
@@ -536,7 +536,7 @@ function addSub(link) {
       link.prevSub = currentTail;
       if (currentTail) currentTail.nextSub = link;
     }
-    if (!!(process.env.NODE_ENV !== "production") && link.dep.subsHead === void 0) {
+    if (link.dep.subsHead === void 0) {
       link.dep.subsHead = link;
     }
     link.dep.subs = link;
@@ -544,13 +544,13 @@ function addSub(link) {
 }
 var targetMap = /* @__PURE__ */ new WeakMap();
 var ITERATE_KEY = /* @__PURE__ */ Symbol(
-  !!(process.env.NODE_ENV !== "production") ? "Object iterate" : ""
+  true ? "Object iterate" : ""
 );
 var MAP_KEY_ITERATE_KEY = /* @__PURE__ */ Symbol(
-  !!(process.env.NODE_ENV !== "production") ? "Map keys iterate" : ""
+  true ? "Map keys iterate" : ""
 );
 var ARRAY_ITERATE_KEY = /* @__PURE__ */ Symbol(
-  !!(process.env.NODE_ENV !== "production") ? "Array iterate" : ""
+  true ? "Array iterate" : ""
 );
 function track(target, type, key) {
   if (shouldTrack && activeSub) {
@@ -564,7 +564,7 @@ function track(target, type, key) {
       dep.map = depsMap;
       dep.key = key;
     }
-    if (!!(process.env.NODE_ENV !== "production")) {
+    if (true) {
       dep.track({
         target,
         type,
@@ -583,7 +583,7 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
   }
   const run = (dep) => {
     if (dep) {
-      if (!!(process.env.NODE_ENV !== "production")) {
+      if (true) {
         dep.trigger({
           target,
           type,
@@ -964,7 +964,7 @@ var MutableReactiveHandler = class extends BaseReactiveHandler {
       }
       if (!isArrayWithIntegerKey && /* @__PURE__ */ isRef(oldValue) && !/* @__PURE__ */ isRef(value)) {
         if (isOldValueReadonly) {
-          if (!!(process.env.NODE_ENV !== "production")) {
+          if (true) {
             warn(
               `Set operation on key "${String(key)}" failed: target is readonly.`,
               target[key]
@@ -1023,7 +1023,7 @@ var ReadonlyReactiveHandler = class extends BaseReactiveHandler {
     super(true, isShallow2);
   }
   set(target, key) {
-    if (!!(process.env.NODE_ENV !== "production")) {
+    if (true) {
       warn(
         `Set operation on key "${String(key)}" failed: target is readonly.`,
         target
@@ -1032,7 +1032,7 @@ var ReadonlyReactiveHandler = class extends BaseReactiveHandler {
     return true;
   }
   deleteProperty(target, key) {
-    if (!!(process.env.NODE_ENV !== "production")) {
+    if (true) {
       warn(
         `Delete operation on key "${String(key)}" failed: target is readonly.`,
         target
@@ -1077,7 +1077,7 @@ function createIterableMethod(method, isReadonly2, isShallow2) {
 }
 function createReadonlyMethod(type) {
   return function(...args) {
-    if (!!(process.env.NODE_ENV !== "production")) {
+    if (true) {
       const key = args[0] ? `on key "${args[0]}" ` : ``;
       warn(
         `${capitalize(type)} operation ${key}failed: target is readonly.`,
@@ -1167,7 +1167,7 @@ function createInstrumentations(readonly2, shallow) {
         if (!hadKey) {
           key = /* @__PURE__ */ toRaw(key);
           hadKey = has.call(target, key);
-        } else if (!!(process.env.NODE_ENV !== "production")) {
+        } else if (true) {
           checkIdentityKeys(target, has, key);
         }
         const oldValue = get.call(target, key);
@@ -1186,7 +1186,7 @@ function createInstrumentations(readonly2, shallow) {
         if (!hadKey) {
           key = /* @__PURE__ */ toRaw(key);
           hadKey = has.call(target, key);
-        } else if (!!(process.env.NODE_ENV !== "production")) {
+        } else if (true) {
           checkIdentityKeys(target, has, key);
         }
         const oldValue = get ? get.call(target, key) : void 0;
@@ -1199,7 +1199,7 @@ function createInstrumentations(readonly2, shallow) {
       clear() {
         const target = /* @__PURE__ */ toRaw(this);
         const hadItems = target.size !== 0;
-        const oldTarget = !!(process.env.NODE_ENV !== "production") ? isMap(target) ? new Map(target) : new Set(target) : void 0;
+        const oldTarget = true ? isMap(target) ? new Map(target) : new Set(target) : void 0;
         const result = target.clear();
         if (hadItems) {
           trigger(
@@ -1302,7 +1302,7 @@ function readonly(target) {
 }
 function createReactiveObject(target, isReadonly2, baseHandlers, collectionHandlers, proxyMap) {
   if (!isObject(target)) {
-    if (!!(process.env.NODE_ENV !== "production")) {
+    if (true) {
       warn(
         `value cannot be made ${isReadonly2 ? "readonly" : "reactive"}: ${String(
           target
@@ -1382,7 +1382,7 @@ var RefImpl = class {
     this["__v_isShallow"] = isShallow2;
   }
   get value() {
-    if (!!(process.env.NODE_ENV !== "production")) {
+    if (true) {
       this.dep.track({
         target: this,
         type: "get",
@@ -1400,7 +1400,7 @@ var RefImpl = class {
     if (hasChanged(newValue, oldValue)) {
       this._rawValue = newValue;
       this._value = useDirectValue ? newValue : toReactive(newValue);
-      if (!!(process.env.NODE_ENV !== "production")) {
+      if (true) {
         this.dep.trigger({
           target: this,
           type: "set",
@@ -1439,10 +1439,10 @@ var ComputedRefImpl = class {
     activeSub !== this) {
       batch(this, true);
       return true;
-    } else if (!!(process.env.NODE_ENV !== "production")) ;
+    } else if (true) ;
   }
   get value() {
-    const link = !!(process.env.NODE_ENV !== "production") ? this.dep.track({
+    const link = true ? this.dep.track({
       target: this,
       type: "get",
       key: "value"
@@ -1456,7 +1456,7 @@ var ComputedRefImpl = class {
   set value(newValue) {
     if (this.setter) {
       this.setter(newValue);
-    } else if (!!(process.env.NODE_ENV !== "production")) {
+    } else if (true) {
       warn("Write operation failed: computed value is readonly");
     }
   }
@@ -1472,7 +1472,7 @@ function computed(getterOrOptions, debugOptions, isSSR = false) {
     setter = getterOrOptions.set;
   }
   const cRef = new ComputedRefImpl(getter, setter, isSSR);
-  if (!!(process.env.NODE_ENV !== "production") && debugOptions && !isSSR) {
+  if (debugOptions && !isSSR) {
     cRef.onTrack = debugOptions.onTrack;
     cRef.onTrigger = debugOptions.onTrigger;
   }
@@ -1486,7 +1486,7 @@ function onWatcherCleanup(cleanupFn, failSilently = false, owner = activeWatcher
     let cleanups = cleanupMap.get(owner);
     if (!cleanups) cleanupMap.set(owner, cleanups = []);
     cleanups.push(cleanupFn);
-  } else if (!!(process.env.NODE_ENV !== "production") && !failSilently) {
+  } else if (!failSilently) {
     warn(
       `onWatcherCleanup() was called when there was no active watcher to associate with.`
     );
@@ -1530,7 +1530,7 @@ function watch(source, cb, options = EMPTY_OBJ) {
       } else if (isFunction(s)) {
         return call ? call(s, 2) : s();
       } else {
-        !!(process.env.NODE_ENV !== "production") && warnInvalidSource(s);
+        warnInvalidSource(s);
       }
     });
   } else if (isFunction(source)) {
@@ -1557,7 +1557,7 @@ function watch(source, cb, options = EMPTY_OBJ) {
     }
   } else {
     getter = NOOP;
-    !!(process.env.NODE_ENV !== "production") && warnInvalidSource(source);
+    warnInvalidSource(source);
   }
   if (cb && deep) {
     const baseGetter = getter;
@@ -1633,7 +1633,7 @@ function watch(source, cb, options = EMPTY_OBJ) {
       cleanupMap.delete(effect2);
     }
   };
-  if (!!(process.env.NODE_ENV !== "production")) {
+  if (true) {
     effect2.onTrack = options.onTrack;
     effect2.onTrigger = options.onTrigger;
   }
@@ -1720,7 +1720,6 @@ function createPage(def2) {
     detached() {
       var _a2;
       runner == null ? void 0 : runner.effect.stop();
-      stop == null ? void 0 : stop();
       (_a2 = def2.onUnload) == null ? void 0 : _a2.call(this);
     }
   };

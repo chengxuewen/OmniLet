@@ -94,8 +94,8 @@ pinned). Measured bytes for the counter-fixture build:
 
 | mode | vendor bytes |
 |---|---|
-| dev (readable) | 51,117 |
-| prod (esbuild minify) | 20,360 |
+| dev (readable) | 49,868 |
+| prod (esbuild minify) | 17,451 |
 
 Observation only (no regression redline): uni-app ships a 177 KB
 vue.runtime fork per mini-app package (`docs/reference/uniapp-compiler-internals.md`
