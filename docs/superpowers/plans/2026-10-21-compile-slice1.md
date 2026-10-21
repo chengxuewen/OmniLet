@@ -105,8 +105,8 @@ packages/rule-schema/
 **Interfaces:**
 - Produces: 唯一输入基准——**内容一次定稿**（golden 全部由它派生；改动样例=改全量卷，需 R3 登记）：
 ```
-index.html:  <view v-if="{{ ready }}" ol:requires="storage"><text>{{ count }}</text>
-               <view v-for="{{ (item, idx) in list }}" :key="idx"><text>{{ item }}</text></view>
+index.html:  <view v-if="ready" ol:requires="storage"><text>{{ count }}</text>
+               <view v-for="(item, idx) in list" :key="idx"><text>{{ item }}</text></view>
                <button @tap="inc">+1</button></view>
 index.ts:    import { reactive } from 'omnilet'
              const state = reactive({ ready: true, count: 0, list: ['a','b'] })
@@ -136,7 +136,7 @@ app.json:    { "pages": ["pages/index/index"] }
 **Interfaces:**
 - Produces: `loadTables(rulesDir, goldenRoot): TableSet`——依次跑 **schema 校验(ajv) → 逐行 golden 目录存在性 → v-/ol: 词表交集** ，任一失败 `throw TableGateError`；TableSet={ tagMap[], … 七区 }
 - [ ] **Step 1:** 失败测试×3：加一行 golden 指向不存在目录 → 抛"缺卷"；ol:/v- 同名行 → 抛"交集"；非法行（primitive 不在枚举）→ 抛"schema"
-- [ ] **Step 2:** 实现三闸 + 首表 tagMap 三行（view/text/button→同名 passthrough，golden g001-g003——卷内容此任务先建目录+**占位产物文件**（仅该行的最小输入输出对：`<text>x</text>` 进 → `<text>x</text>` 出），T9 换全链卷时统一改写）
+- [ ] **Step 2:** 实现三闸 + 首表 tagMap 三行（view/text/button→同名 passthrough，golden g001-g003——卷内容 = **rewrite 层 outAst 归一化文本**（进 `<text>x</text>`，出改写后 AST 序列化），与 T8/T9 同形，后续任务只加行不重写）
 - [ ] **Step 3:** 门禁咬合记录：三闸各自植入违规探针红一次（写进 tables.test.ts 用例名，永久回归）
 - [ ] **Step 4:** Commit `feat(compiler): table loader with 3 load-time gates, each probe-proven red-once`
 
@@ -178,7 +178,7 @@ app.json:    { "pages": ["pages/index/index"] }
 
 **Interfaces:**
 - Produces: `classPrefix(value, tables): string`（`box`→`omnilet-box`，表内词免加）；负卷期望文本 = `renderExpect(id)`（T4 同源）
-- [ ] **Step 1:** 负卷 4+：`model:`/`:class="{a:true}"`/`v-for 三元上界`/`enum TS`/`@tap="a+b"` → 各 code 家族命中 + 期望话术 diff（**覆盖矩阵 1xx-4xx 每段 ≥1**，4xx 用 requires 未申报→storage 越权案）
+- [ ] **Step 1:** 负卷 4+（1xx/2xx/3xx 三段）：`model:`/`:class="{a:true}"`/`v-for 三元上界`/`enum TS`/`@tap="a+b"` → 各 code 家族命中 + 期望话术 diff；**4xx 负卷随 manifest 校验器在 T10 落地；矩阵 1xx-4xx 全段断言集中在 T12**
 - [ ] **Step 2:** 实现 + classPrefix/事件/lifecycle/capability 行金卷
 - [ ] **Step 3:** dsl-spec §2 表 ↔ NEGATIVE_ENTRIES 一致性测试（id 清单同源断言）
 - [ ] **Step 4:** Commit
