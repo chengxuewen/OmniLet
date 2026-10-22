@@ -18,6 +18,12 @@ Listing options for the user to choose without the above analysis is forbidden.
 
 **Check**: `printf '%s' "$REPLY_TEXT" | grep -qP '[\x{2460}-\x{24FF}]'` must find nothing.
 
+## C3: 裁决落地 = 全表面同步（防已裁问题被重开）
+
+**Constraint**: 每个 D 裁决写入 decisions.md 的**同一轮**，必须 grep 旧表述并同步所有承载该裁决的文档表面（spec/画像/README/status）；未同步的旧文 = 下一会话重开已裁问题的陷阱源（本 session 实证两次：D10 裁 Vue 族后 dsl-spec §1 仍挂"倾向 wx: 待定稿"，lead 据此重开已裁题；D21 期内 uni-app v3 判例误述又被画像深读翻案）。反向纪律同样成立：**开新裁决前先 grep decisions.md 确认此题未裁**。
+
+**Check**: `grep -rn "<旧裁决关键词>" docs/ .agents/` 与 decisions 新条目同一 commit 落地（git show --stat 可见）。
+
 ## C9: Automatic lesson consolidation
 
 **Constraint**: problems, lessons, and experience discovered during development must be proactively written into the corresponding memory documents within the same session turn.

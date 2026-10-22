@@ -61,6 +61,7 @@ test('falls back to substring search when Redis is unavailable', () => {})
 1. **Name the tier of every claim**: when reporting "tests pass", state what was actually exercised (unit / integration / E2E / human-verified). An interaction or visual surface that no automated test covers must be reported as "not verified", never implied by green unit tests.
 2. **No observable assertions on HashMap/set iteration order**: green in a single local run, red in a full CI run. Lock deterministic semantics by counts/contents, not order; re-run a flaky-suspect test ~5x before committing.
 3. **A gate that greps must prove it can bite**: before trusting a new grep-based check, run it once against a known-positive sample; a pattern that never matches is a permanently green false gate. Gate commands must not end in a pipe (the pipe's exit code masks the command's failure).
+4. **Host-environment masking** — a test green in jsdom/browser/node proves only that host's globals exist; artifacts running on a leaner runtime (mini-program JSC, embedded engine) need a bare-context leg (`node:vm` with window/document/process asserted undefined first). jsdom-green ≠ device-green; see PIT-5.
 
 ## Runnable Check
 

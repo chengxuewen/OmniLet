@@ -464,3 +464,9 @@ Sweep ALSO covers hardcoded ARTIFACT PATHS whose generator layout changed (the s
 **Verification**: `pixi run cargo search wry --limit 2 --registry crates-io` returns results; `pixi run cargo update` shows `Updating rsproxy-sparse index`.
 
 **Blocking condition**: fighting crates.io timeouts directly without checking whether the mirror config exists; adding UA headers when the mirror would have avoided the whole problem.
+
+### 41. 子代理报告 = 主张，磁盘 = 事实——双向核验（2026-10-21，spec-review 队双向翻车实证）
+
+**Rule**: 子代理/后台任务报告涉及文件时，采信前必须 `git status --short`（派发前快照 → 回收后对照）核验**两个方向**：① 声称"已写盘"而磁盘为空（本 session librarian 两轮口头产出 5 份画像，git 零变更，"config valid"式假完成）；② 声称"只读未动"而磁盘多出文件（compiler-tech-audit 违规实写 internals 档——本次是宝藏，但流程上仍是漂移）。报告叙事不进裁决依据，磁盘 diff 进。派发词里显式写"只读"或"写到路径 X"，回收时按词核验。
+**Verification**: 任务回收后的下一条控制器命令 = `git status --short`（对报告声明的文件清单逐个 `test -f` 抽样）。
+**Blocking condition**: 基于子代理"我写了"的陈述提交成果而未见磁盘文件；或基于"我没改"的陈述跳过 status 检查。

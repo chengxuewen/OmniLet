@@ -42,3 +42,10 @@
 - **Solution**: 两个输出槽永远给 Some(&mut Option<T>) 容器，不用的结果丢弃即可
 - **Verification**: bootstrap eval 从 ok=0 转 ok=1 的唯一变更就是补 retval 容器
 - **Forbidden**: 给 C API 的 out 参数传 null 来"忽略返回值"
+
+## PIT-5: jsdom/浏览器环境测试掩盖真机崩溃（2026-10-21，compile-slice1 T11，终审揪出 2 处）
+- **Symptom**: 行为档在 miniprogram-simulate（jsdom）全绿，但产物在微信真机会崩——两处 jsdom 掩盖：① adapter 僵尸行 `stop?.()`（jsdom 有 window.stop 吞掉，真机 ReferenceError 先于 onUnload）；② vendor 里裸 `process.env.NODE_ENV`（node 有 process，真机 load 即炸）
+- **Root cause**: 测试宿主环境（jsdom/node）全局对象集 ⊃ 目标运行时（微信 JSC/V8 页面环境）；任何在 jsdom 绿的断言都只对"jsdom 有什么"负责，不对"真机有什么"负责
+- **Solution**: 环境无关的关键路径（vendor load、生命周期钩子）加 **bare node:vm 腿**：无 window/document/process 的全局环境里 load + 走一遍 created→detached，缺全局断言 `typeof === 'undefined'` 先自证再测行为（见 `compiler/tests/device-detach.test.ts` 双腿 dev+prod）
+- **Verification**: `pixi run pnpm --dir compiler test device-detach` 绿 +  bite-probe：对旧 bundle（含 zombie 行的 git 对象）重放必须红（`ReferenceError: stop is not defined`）
+- **Forbidden**: 只有 jsdom/浏览器宿主腿就宣称产物"真机可跑"；人眼档前所有环境断言必须标注宿主环境名
