@@ -61,7 +61,8 @@ compiler/
     codegen/html.ts             [NEW] web shell emit (mount point + script wiring)
     codegen/js.ts               [MOD] call-site parameterization only (factory/emit already parameterized
                                       via EmitOpts; web callers pass web factory/rel)
-    codegen/css.ts              [NEW or wxss.ts rename] selector whitelist reuse + rpx->px conversion:
+    codegen/css.ts              [NEW FILE, wxss.ts kept as-is for wechat (LOW-9: no rename; selector-
+                                      whitelist helper lives in tables.ts, shared by both targets)] + rpx->px:
                                       codegen-consumed row (D22 Card 3 honesty note: NO kernel code consumes
                                       styleRules rpx rows — css.ts unit-math keys on s='rpx',t='px', basis 750
                                       hardcoded here; new codegen code, not primitive dispatch)
