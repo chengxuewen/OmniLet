@@ -1,1 +1,16 @@
-placeholder
+{
+  "schemaVersion": 1,
+  "minEngineVersion": "0.1.0",
+  "packageVersion": "0.1.0",
+  "files": [
+    {
+      "path": "index.html",
+      "hash": "sha256:2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "size": 1
+    }
+  ],
+  "signature": {
+    "algorithm": "ed25519",
+    "value": ""
+  }
+}

@@ -89,3 +89,9 @@ function parseJsonObject(
 function stableJson(obj: Record<string, unknown>): string {
   return `${JSON.stringify(obj, null, 2)}\n`
 }
+
+// --------------------------------------------------- web entry (slice-2 T3)
+// emitAppEntryJs: the web branch of the app entry — author app.ts compiles to
+// the createApp facade shape; the OUTPUT FILE is main.js (naming belongs to
+// compileProject's web dispatch, T4 — this function only produces code).
+export { emitAppEntryJs } from './js'

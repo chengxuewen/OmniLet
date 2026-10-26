@@ -263,3 +263,20 @@ function parseErr(e: unknown, file: string, code: number, label: string): Diag {
   const msg = e instanceof Error ? e.message.split('\n')[0] : String(e)
   return diag(code, `${label}: ${msg}`, `修正 ${file} 的脚本语法（1xx = lex/parse 家族，types.ts）`, { file, line: 0, col: 0 })
 }
+
+// ------------------------------------------------- web call-sites (slice-2 T3)
+// emitPageJsWeb: the web target's page emitter — same factory (createPage),
+// same relative-depth runtime path (T4's dispatch builds the package root the
+// same way); the only wechat-side difference lives in the TABLE, not here.
+// One-line forward: emitModuleJs stays the single Babel resident.
+export function emitPageJsWeb(ts: string, pageName: string): JsResult {
+  const dir = pageName.slice(0, pageName.lastIndexOf('/') + 1) // 'pages/index/'
+  const depth = dir === '' ? 0 : dir.split('/').filter((s) => s !== '').length
+  const rel = `${'../'.repeat(depth)}${RUNTIME_VENDOR}`
+  return emitModuleJs(ts, { file: `${pageName}.ts`, factory: 'createPage', runtimeRel: rel })
+}
+
+// emitAppEntryJs: the web branch's app entry — same createApp facade shape as
+// emitAppJs; the OUTPUT FILE is main.js (naming belongs to compileProject's
+// web dispatch, T4 — this function only produces code).
+export const emitAppEntryJs = emitAppJs

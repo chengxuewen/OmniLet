@@ -1,1 +1,1 @@
-placeholder
+view { padding: 5px; }

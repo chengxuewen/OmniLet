@@ -1,1 +1,1 @@
-placeholder
+.omnilet-card:hover { color: blue; }
