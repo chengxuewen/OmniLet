@@ -25,8 +25,8 @@ Add a second rule table (`web`) to the table-driven compiler — same author sou
 ## 2. Architecture & data flow
 
 ```
-author source (index.html/ts/css/json + app.json)
-  |
+author source (index.html/ts/css/json + app.json + optional app.ts — LOW-10: app.ts part of the
+        single source of truth; both targets consume it)
   +-- --target wechat -> [wechat tables] -> WeChat package (wxml/wxss/...)   [green, untouched]
   +-- --target web    -> [web tables]    -> web package:
         index.html                 shell (mount point, script tags)
@@ -91,7 +91,8 @@ compiler/
       vendor-entry.ts           [NEW] esbuild entry (mirror of wechat/vendor-entry.ts)
   tests/
     fixtures/counter/           [REUSED] same source compiles to both targets (zero edits)
-    golden/                     [NEW] web-target goldens (g-web-gNNN ids), RECORD_GOLDEN=1 flow
+    golden/                     [NEW] web-target goldens, NAMESPACE 'g-web-gNNN' (LOW-11: prefix-isolated
+                                      from wechat's gNNN by naming convention), RECORD_GOLDEN=1 flow
     web-behavior.test.ts        [NEW] Playwright tier
 
 crates/omnilet-cef/src/bridge.rs [MOD] register two BrowserSide handlers in bridge_registry():
