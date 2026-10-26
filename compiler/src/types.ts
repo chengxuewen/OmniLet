@@ -40,6 +40,13 @@ export type TableRow = {
   /** styleRules class-word exemption (T9): true = this class word never takes the
    *  omnilet- prefix. Template rewrite and css codegen read the same row (同源词表). */
   exempt?: boolean
+  /** v-for alias-attr names (D22 Card 1): the attr emitted for the item/index
+   *  aliases (v-for 的 wx:for-item / wx:for-index). splitDirective reads these;
+   *  absent = the wechat literals (`wx:for-item` / `wx:for-index`) — default
+   *  behavior is today's bytes. Field names are pinned; only values vary per target.
+   */
+  forItem?: string
+  forIndex?: string
   golden: string
 }
 

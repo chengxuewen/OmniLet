@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
 import { PRIMITIVES, rewrite, serializeAst, type ForScope, type PrimJob } from './rewrite'
 import { buildExprWhitelist } from './expr'
 import { buildTemplateAst } from './ir'
-import { loadTables } from './tables'
+import { loadTables, type RawTableSet } from './tables'
 import { PRIM_NAMES } from './types'
 import type { TableRow } from './types'
 import { wechatTables } from '../rules/wechat'
@@ -207,5 +207,46 @@ describe('attribute emission order is table-driven, not source-driven', () => {
   it('mapped attrs precede plain attrs; plain attrs keep source order', () => {
     const out = run('<view id="a" v-if="ready" class="box"></view>')
     expect(serializeAst(out.outAst)).toBe('<view wx:if="{{ready}}" id="a" class="omnilet-box">\n</view>\n')
+  })
+})
+
+describe('splitDirective row-field extension (D22 Card 1)', () => {
+  const emptySet = (): RawTableSet => ({
+    tagMap: [
+      { kind: 'tagMap', s: 'view', t: 'view', primitive: 'passthrough', golden: 'g001' },
+      { kind: 'tagMap', s: 'text', t: 'text', primitive: 'passthrough', golden: 'g002' },
+    ],
+    directiveMap: [],
+    eventMap: [],
+    lifecycleMap: [],
+    exprWhitelist: [{ kind: 'exprWhitelist', s: 'Identifier', golden: 'g008' }],
+    styleRules: [],
+    capabilityRules: [],
+  })
+  const forRow = (over: Partial<TableRow>): TableRow => ({
+    kind: 'directiveMap',
+    s: 'v-for',
+    t: 'data-for',
+    primitive: 'splitDirective',
+    wrap: true,
+    golden: 'g005',
+    ...over,
+  })
+
+  it('forItem/forIndex fields rename the alias attrs; defaults = wx: literals', () => {
+    const html = '<view v-for="(item, idx) in list"><text>{{ item }}</text></view>'
+    const t1 = loadTables({
+      ...emptySet(),
+      directiveMap: [forRow({ forItem: 'data-for-item', forIndex: 'data-for-index' })],
+    })
+    const r1 = rewrite(buildTemplateAst(html, 'f').ast, t1)
+    expect(r1.diagnostics).toEqual([])
+    expect(serializeAst(r1.outAst)).toContain('data-for-item="item"')
+    expect(serializeAst(r1.outAst)).toContain('data-for-index="idx"')
+    const t2 = loadTables({ ...emptySet(), directiveMap: [forRow({ golden: 'g005' })] })
+    const r2 = rewrite(buildTemplateAst(html, 'f').ast, t2)
+    expect(r2.diagnostics).toEqual([])
+    expect(serializeAst(r2.outAst)).toContain('wx:for-item="item"')
+    expect(serializeAst(r2.outAst)).toContain('wx:for-index="idx"')
   })
 })

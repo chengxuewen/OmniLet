@@ -243,7 +243,7 @@ export const PRIMITIVES: Record<NonNullable<TableRow['primitive']>, (job: PrimJo
     const gated = gateAttr({ ...job, raw: (listRaw ?? '').trim(), scope }, row.t ?? 'wx:for', row.wrap === true)
     if (gated.diagnostics.length > 0) return gated
     return {
-      attrs: [...gated.attrs, { k: 'wx:for-item', v: item }, { k: 'wx:for-index', v: index }],
+      attrs: [...gated.attrs, { k: row.forItem ?? 'wx:for-item', v: item }, { k: row.forIndex ?? 'wx:for-index', v: index }],
       diagnostics: [],
       paths: gated.paths,
       scope,

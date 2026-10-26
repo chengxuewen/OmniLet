@@ -24,6 +24,16 @@
       "enum": ["rename", "wrapExpr", "splitDirective", "keyTransform", "valueMap", "passthrough", "classPrefix", "lifecyclePassthrough"],
       "description": "Kernel primitive the row maps onto (closed 8-value set, D21 mixed-DSL vocab)."
     },
+    "forItem": {
+      "type": "string",
+      "minLength": 1,
+      "description": "v-for item-alias attr name (D22 Card 1): what splitDirective emits for the loop item alias. Absent = wechat literal `wx:for-item`."
+    },
+    "forIndex": {
+      "type": "string",
+      "minLength": 1,
+      "description": "v-for index-alias attr name (D22 Card 1): what splitDirective emits for the loop index alias. Absent = wechat literal `wx:for-index`."
+    },
     "golden": {
       "type": "string",
       "minLength": 1,

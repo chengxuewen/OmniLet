@@ -15,7 +15,16 @@ export const wechatTables: RawTableSet = {
   ],
   directiveMap: [
     { kind: 'directiveMap', s: 'v-if', t: 'wx:if', primitive: 'rename', wrap: true, golden: 'g004' },
-    { kind: 'directiveMap', s: 'v-for', t: 'wx:for', primitive: 'splitDirective', wrap: true, golden: 'g005' },
+    {
+      kind: 'directiveMap',
+      s: 'v-for',
+      t: 'wx:for',
+      primitive: 'splitDirective',
+      wrap: true,
+      forItem: 'wx:for-item',
+      forIndex: 'wx:for-index',
+      golden: 'g005',
+    },
     { kind: 'directiveMap', s: ':key', t: 'wx:key', primitive: 'keyTransform', golden: 'g006' },
     // :class/:style simple-expr rows (T9 ruling): object/array literals reject at the
     // visitor as NEGATIVE class-obj (202); anything the expr whitelist accepts emits
