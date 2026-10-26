@@ -4,5 +4,8 @@
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.24.0"
+  "packageManager": "pnpm@11.24.0",
+  "devDependencies": {
+    "@colbymchenry/codegraph": "^1.6.2"
+  }
 }

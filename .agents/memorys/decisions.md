@@ -311,3 +311,15 @@
 - **Reverses** D21 形态小裁 4' (.omnilet 主 + .vue 兼容): source form becomes **per-page standard split files** (`index.html/ts/css/json + app.json`), no dedicated extension at all.
 - **Evidence**: self-invented extensions survive only with a dedicated IDE-plugin team behind them (.vue→Volar, .mpx→mpx-vscode, .svelte→svelte-vscode); .ux (QuickApp) tooling pain is public; .cml died with its author. Taro proves .tsx-level standardness eats the whole tooling world for free. WeChat native is split files — zero migration surprise, AI corpus maximum, output shape 1:1, pipeline drops the SFC-unpack stage.
 - **Unaffected**: D10-1 (vocabulary = Vue family) never ruled file form; D21 mixed-vocab v-/ol: ruling, events, one-way, lifecycle all stand. dsl-spec.md rewritten to v0.2 accordingly (§1 split-form + vocab + one-way + socket facade + lifecycle; §5 override rule generalized to all four file types + IR-order red line restated).
+
+
+## D22: slice2 web/container 目标裁决包——假说诚实降级 + D15-4 和解（2026-10-26, user-adjudicated one by one; 6 卡全 A）
+
+- **背景**：slice2 brainstorming 后 spec 落盘（2843d89），团队模式 4 轴敌意评审（arch-consistency / hypothesis-killer / bridge-live-fire / test-honesty，全 ultrabrain），交叠 findings 汇总为 6 张裁决卡逐项过；另 ~20 条 MED/LOW 直接折入 spec 修订不占裁决。
+- **Card 1 — v-for 拆分 = A 三行参数化**：splitDirective 硬编码的 wx:for-item/wx:for-index 改从表行读（默认值=现状字符串，微信端产物字节不变）；假说结论诚实降级：**“零内核行为变化 + 一处行字段扩展”**（spec §0/§2 同步改写，不再写“零内核改动”字面）。评审证明第二张表暴露隐藏耦合——D5 假说实验按设计工作。
+- **Card 2 — D15-4 和解 = A 自包含+版本守卫**：web 包自包含 runtime（裸浏览器无注入面，唯一活路）；版本错配防线 = 信封 minEngineVersion 字段（D8-1 已裁格式，本切片起容器加载时校验）；D15-4 注入模型限定**容器原生 lane**（cef bootstrap 注入面），不适用静态包消费；decisions 记本条为裁定，D15-4 原文不改。
+- **Card 3 — rpx 网页换算 = A px 定基准**：1rpx=0.5px@375 视口写死；dsl-spec §4 行 55 同轮改（vw/rem 留重开触发器）；换算逻辑落 css 生成器（表行驱动，basis 写死并记录）。
+- **Card 4 — 容器断言机制 = A echo 模式 + 诚实降级**：eval 结果通道不存在（lib.rs:499 硬编码 null，D20 推迟项不提前还债）；断言 = 像素 lane（非空白帧）+ DOM 态经桥 echo 回读（cef_lifecycle:123-143 已验证模式）；红线 3 从“文字可读”降级为“非空白+DOM 探针”，“文字可读”挂 eval 通道重开触发器。
+- **Card 5 — 浏览器档 = A 双层**：web-vendor 裸 vm 单元层（device-detach 模式，日常门禁）+ Playwright 正式接线（devDep+install+代理路由，一次性 ~0.5 任务记风险账）；本切片验收含真浏览器档绿（履行“零人工欠账”承诺）。
+- **Card 6 — @tap.stop = A 声明不支持+登记**：spec 明文“web v1 事件修饰符不支持”，deferred minors + 重开触发器（fixture 需求出现→补拒绝门或 tStop 行字段）；静默丢失窗口明文登记，不提前还债。
+- **影响**：spec 2026-10-26-slice2-web-container-design.md 全面修订（6 卡 + 评审直接折入项：probe 探测面改 omnilet.storage、responder 恰好一次应答、存储目录移出服务根、main.rs [MOD] 归名、manifest 生成器归名、onLaunch 首页挂载一次性、hash-pin 双目标同源测试、跨表隔离 grep 探针）；dsl-spec §4 同轮；writing-plans 以修订后 spec 为输入。
