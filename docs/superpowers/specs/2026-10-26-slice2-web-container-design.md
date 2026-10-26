@@ -18,7 +18,7 @@ Add a second rule table (`web`) to the table-driven compiler — same author sou
 2. Browser behavior tier (Playwright, real Chromium — NOT jsdom, per PIT-5): initial 0 / list a,b; tap +1 x3 -> 3; same-tick double-tap -> one flush; detach freezes.
 3. Container tier: `omnilet-container --dir <web-pkg>` headless -> `LOADED painted served=N` rc=0; counter initial state proven by TWO legs (D22 Card 4): (a) pixel lane = non-blank frame (T6 center-pixel proves paint, not text — honestly downgraded); (b) DOM-state echo probe = in-page JS writes `document.querySelector(<count>).textContent` into the native store via `omnilet.storage.set('probe', ...)`, harness asserts "0" from the native side (pattern proven at cef_lifecycle.rs:123-143). "Text readable in frame" moves to the eval-channel reopen trigger (§8).
 4. Bridge storage round-trip (option 5A, real read/write): `window.omnilet.storage.set/get` through cefQuery -> BrowserSide handler -> real native persistence -> get returns the value, **asserted via native-side store observation — NEVER via backend.eval return** (eval result channel does not exist: lib.rs:499 returns hardcoded "null", a D20-deferred extension; an implementer writing `let v = backend.eval(...)` builds a broken-by-construction test). D17's first live-fire.
-5. WeChat regression red-line: all 206 slice-1 tests + goldens byte-identical (the "new table must not hurt the proven target" evidence).
+5. WeChat regression red-line: the full slice-1 test suite (fresh-run count, was 206 at slice-1 close) + goldens byte-identical (LOW-8: cite fresh runs, not a static number — the count grows as this slice adds tests).
 
 **Non-goals (explicit, scope-creep guards)**: no virtual DOM / path-granular refresh (slice 3 main dish); no signature verification (manifest `signature` placeholder, container today only fail-closes on presence); no HMR/watch/routing/multi-page fixtures; no WebViewBackend frozen-surface changes (container reuses the existing headless lane); no new diagnostic codes (see §4).
 
@@ -53,7 +53,8 @@ Key kernel-invariants being verified (the D5 hypothesis under test): ingest / IR
 compiler/
   rules/web.ts                  [NEW] table rows (see §3.1 vocab), same RawTableSet shape
   src/
-    tables.ts ir.ts ingest.ts diag.ts capabilities.ts   [UNCHANGED]
+    tables.ts ir.ts ingest.ts diag.ts capabilities.ts codegen/dts.ts   [UNCHANGED]
+                                      (LOW-6 residual: dts.ts explicitly listed; dts is target-invariant)
     rewrite.ts                  [MOD] splitDirective row-field extension (D22 Card 1): item/index attr names
                                       read from the row (defaults 'wx:for-item'/'wx:for-index'; ~3 lines,
                                       wechat rows unchanged -> wechat output byte-identical)
@@ -148,13 +149,13 @@ Fail-closed chain (unchanged): any diagnostic -> ok=false -> ZERO files written 
 
 | tier | content | form |
 |---|---|---|
-| unit/golden | web table rows -> g-web-gNNN goldens (html bytes / css bytes / module-surgery bytes) | existing RECORD_GOLDEN=1 mechanism; wechat 206 green ZERO-drift as the per-task gate |
+| unit/golden | web table rows -> g-web-gNNN goldens (html bytes / css bytes / module-surgery bytes) | existing RECORD_GOLDEN=1 mechanism; wechat suite fresh-run green ZERO-drift as the per-task gate (LOW-8) |
 | structural | package completeness: index.html exists, require-heads point at package-root runtime, manifest files list matches disk + hashes match | gates.test.ts four-probe pattern, web-target probes added |
 | behavior (browser) | TWO layers (D22 Card 5): (a) web-vendor bare-vm unit tier mirroring device-detach.test.ts — cheap per-task gate, PIT-5-honest; (b) Playwright real Chromium — FIRST Playwright wiring in this repo (devDep + browser install + proxy routing per lessons #39/#40, ~0.5-task one-time bring-up, named in plan); NOT jsdom |
 | behavior (container) | `omnilet-container --dir <pkg>` headless -> LOADED painted served=N rc=0; TWO-LEG verdict (D22 Card 4): pixel lane non-blank + DOM-state echo probe (set('probe', <count>.textContent) -> native store poll asserts "0"); storage value identity via native-side store observation (echo pattern, cef_lifecycle.rs:123-143); NEVER via backend.eval return (hardcoded "null" today) |
 
 Acceptance red-lines:
-1. wechat target: 206 tests + goldens zero-byte-drift (per-task gate, not a final-only check).
+1. wechat target: full slice-1 suite fresh-run + goldens zero-byte-drift (per-task gate, not a final-only check; LOW-8: fresh count, not static 206).
 2. Same `counter` source compiles clean on both targets (`--target` is the ONLY delta).
 3. Container verdict = non-blank pixel frame + DOM-state echo probe returns counter initial value (D22 Card 4 downgrade; "text readable in frame" is the eval-channel reopen trigger, §8).
 4. Same-source red-line pinned by a NAMED test (test-honesty F2): one suite hashes tests/fixtures/counter, compiles BOTH targets from the same root in one run, asserts both ok=true AND fixture-hash unchanged between compiles — causal, not narrative.
