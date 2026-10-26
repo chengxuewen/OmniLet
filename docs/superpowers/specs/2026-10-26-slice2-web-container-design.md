@@ -96,7 +96,9 @@ compiler/
 
 crates/omnilet-cef/src/bridge.rs [MOD] register two BrowserSide handlers in bridge_registry():
                                       omnilet.storage.get/.set -> real read/write. Store location: OUTSIDE the
-                                      serving root (`<dir>-omnilet-data/` sibling, create_dir_all at first
+                                      serving root (`<dir>-omnilet-data/` sibling — per-package derivation
+                                      satisfies invariant-6 isolation BY CONSTRUCTION: keys never cross
+                                      package boundaries; no shared-store namespace needed), create_dir_all at first
                                       write, single JSON file, temp+rename atomic; F3: load_offline_dir serves
                                       ANY file under package root — an in-package store would leak via
                                       omnilet://app/ and pollute the served-count proof). Handler discipline
