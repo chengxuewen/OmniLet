@@ -1,0 +1,5 @@
+<div data-for="{{list}}" data-for-item="item" data-for-index="idx" data-key="index">
+  <span>
+    {{item}}
+  </span>
+</div>

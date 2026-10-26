@@ -157,3 +157,28 @@ function catchGate(fn: () => unknown): TableGateError {
   }
   throw new Error('expected TableGateError, none thrown')
 }
+
+
+describe('web table loads through the same three gates (slice 2)', () => {
+  it('webTables passes schema/golden/vocab gates and exposes the web vocab', async () => {
+    const { webTables } = await import('../rules/web')
+    const { loadTables } = await import('../src/tables')
+    const t = loadTables(webTables)
+    expect(t.tagMap.find((r) => r.s === 'view')!.t).toBe('div')
+    expect(t.directiveMap.find((r) => r.s === 'v-for')!.t).toBe('data-for')
+    expect(t.directiveMap.find((r) => r.s === 'v-for')!.forItem).toBe('data-for-item')
+    expect(t.eventMap.find((r) => r.s === '@tap')!.t).toBe('click')
+    expect(t.styleRules.find((r) => r.s === 'rpx')!.t).toBe('px')
+    expect(t.capabilityRules.map((r) => r.s)).toEqual(['storage'])
+  })
+  it('web v-for row is breakage-probed: renaming forItem moves the emitted attr', async () => {
+    const { webTables } = await import('../rules/web')
+    const { loadTables } = await import('../src/tables')
+    const { rewrite } = await import('../src/rewrite')
+    const { buildTemplateAst } = await import('../src/ir')
+    const { serializeAst } = await import('../src/rewrite')
+    const mutated = { ...webTables, directiveMap: webTables.directiveMap.map((r) => r.s === 'v-for' ? { ...r, forItem: 'probe-item' } : r) }
+    const r = rewrite((await buildTemplateAst('<view v-for="(i, ix) in xs"></view>', 'p')).ast, loadTables(mutated))
+    expect(serializeAst(r.outAst)).toContain('probe-item="i"')
+  })
+})

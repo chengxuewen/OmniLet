@@ -173,3 +173,30 @@ function walk(dir: string): string[] {
     e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)],
   )
 }
+
+describe('gate P5: web golden namespace isolation (slice 2) — g-web-gNNN never collides with wechat gNNN', () => {
+  it('every web-table golden id carries the g-web- prefix; ids exist on disk and stay disjoint from wechat ids', async () => {
+    // data-file isolation probe (slice-2 brief): the wechat table owns gNNN ids,
+    // the web table owns g-web-gNNN ids — a shared dir would let either target's
+    // re-record clobber the other's golden bytes. Bites if a web row drops the prefix.
+    const { webTables } = await import('../rules/web')
+    const { wechatTables } = await import('../rules/wechat')
+    const { defaultGoldenRoot } = await import('../src/tables')
+    const G = defaultGoldenRoot()
+    const webIds = Object.values(webTables).flatMap((rows) => rows.map((r) => r.golden))
+    const wxIds = Object.values(wechatTables).flatMap((rows) => rows.map((r) => r.golden))
+    expect(webIds.length).toBeGreaterThan(0)
+    for (const id of webIds) {
+      expect(id.startsWith('g-web-')).toBe(true)
+      expect(wxIds).not.toContain(id)
+    }
+    // ids unique within the web table (each row owns its own volume)
+    expect(new Set(webIds).size).toBe(webIds.length)
+    // and every web golden dir actually exists with both non-empty files (gate 302 positive proof)
+    for (const id of webIds) {
+      expect(readFileSync(join(G, id, 'in.html')).length).toBeGreaterThan(0)
+      expect(readFileSync(join(G, id, 'expected.out.txt')).length).toBeGreaterThan(0)
+    }
+  })
+})
+

@@ -1,0 +1,2 @@
+<div data-if="{{ready}}">
+</div>
